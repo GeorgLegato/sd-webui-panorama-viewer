@@ -130,7 +130,7 @@ Before your text is sent to the neural network, it gets turned into numbers in a
             outputs=[tokenized_text, tokens],
         )
 
-    return [(ui, "Tokenizer", "tokenizer")]
+    return [(ui, "Panorama-3dviewer", "panorama-3dviewer")]
 
 
 script_callbacks.on_ui_tabs(add_tab)
