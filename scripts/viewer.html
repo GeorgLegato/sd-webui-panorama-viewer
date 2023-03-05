@@ -9,30 +9,25 @@
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
 
 <!-- the viewer container must have a defined size -->
-<div id="viewer" style="width: 100vw; height: 100vh;"></div>
+<div id="panoramaviewer" style="width: 100vw; height: 100vh;"></div>
 
 <script>
-  const viewer = new PhotoSphereViewer.Viewer({
-      container: document.querySelector('#viewer'),
-      panorama: '../docs/assets/img/00101.png',
+  const panoviewer = new PhotoSphereViewer.Viewer({
+    container: document.querySelector('#panoramaviewer'),
+    panorama: '../docs/assets/img/00101.png',
   });
 
-	window.addEventListener("message", ({data, origin, source}) => {
-//		if (source === frame.contentWindow) {
-      console.log (data.type)
-			switch (data.type) {
-				case "panoramaviewer/set-panorama":
-					console.info(`[panorama viewer] Exported image to '${data.image}'`);
-          viewer.setPanorama(data.image)
-//  .then(() => /* update complete */);
-
-        }
-      }
-//}
+  window.addEventListener("message", ({ data, origin, source }) => {
+    console.log(data.type)
+    switch (data.type) {
+      case "panoramaviewer/set-panorama":
+        console.info(`[panorama viewer] Sending image '${data.image.dataURL}'`);
+        panoviewer.setPanorama(data.image.dataURL)
+        //.then(() => /* update complete */);
+        document.querySelector('#panoramaviewer').focus()
+    }
+  }
   )
-
-
-
 
 
 

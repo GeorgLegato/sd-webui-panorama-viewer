@@ -60,6 +60,7 @@ function panorama_send_gallery(name = "Embed Resource") {
     panorama_get_image_from_gallery()
 		.then((dataURL) => {
 			// Send to panorama-viewer
+			console.info("[panorama viewer] Using URL: " + dataURL)
 			panorama_send_image(dataURL, name);
 
 			// Change Tab
