@@ -1,0 +1,41 @@
+<head>
+  <!-- for optimal display on high DPI devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
+</head>
+
+<script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
+
+<!-- the viewer container must have a defined size -->
+<div id="viewer" style="width: 100vw; height: 100vh;"></div>
+
+<script>
+  const viewer = new PhotoSphereViewer.Viewer({
+      container: document.querySelector('#viewer'),
+      panorama: '../docs/assets/img/00101.png',
+  });
+
+	window.addEventListener("message", ({data, origin, source}) => {
+//		if (source === frame.contentWindow) {
+      console.log (data.type)
+			switch (data.type) {
+				case "panoramaviewer/set-panorama":
+					console.info(`[panorama viewer] Exported image to '${data.image}'`);
+          viewer.setPanorama(data.image)
+//  .then(() => /* update complete */);
+
+        }
+      }
+//}
+  )
+
+
+
+
+
+
+
+
+</script>
