@@ -1,7 +1,7 @@
 An extension for stable-diffusion-webui that adds a tab that lets you preview hdri-like images, exactly Equirectangular ones.
 
 ## Example Result
-https://clipchamp.com/watch/mLl1QEJSMaI
+https://user-images.githubusercontent.com/7210708/224517208-f355a6da-c170-4656-927e-a051fc1d9f40.mp4
 
 ## Prompt: 
 ```"HDRI Panorama View of some nice room..." ```
