@@ -12,7 +12,7 @@ function panorama_send_image(dataURL, name = "Embed Resource") {
 	});
 }
 
-function panorama_gototab(tabname = "Panorama-3D-Viewer", tabsId = "tabs") {
+function panorama_gototab(tabname = "Panorama Viewer", tabsId = "tabs") {
 	Array.from(
 		gradioApp().querySelectorAll(`#${tabsId} > div:first-child button`)
 	).forEach((button) => {
