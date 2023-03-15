@@ -17,3 +17,5 @@ https://user-images.githubusercontent.com/7210708/224517208-f355a6da-c170-4656-9
 
 ![](about.png)
 
+Credits:
+Framework used: https://photo-sphere-viewer.js.org/  MIT-License, no liability, no warranty
