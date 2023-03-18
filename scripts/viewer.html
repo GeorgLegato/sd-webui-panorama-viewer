@@ -6,10 +6,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
+<script src="../javascript/panoramaviewer-ext.js" ></script>
 
-<div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"> </div>
+<div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
+
 <script>
-
   const startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : '../docs/assets/img/startimage.jpg'
 
   const panoviewer = new PhotoSphereViewer.Viewer({
@@ -29,43 +30,5 @@
     }
   })
 
-  function setPanoFromDroppedFile(file) {
-    reader = new FileReader();
-    reader.onload = function (event) {
-      panoviewer.setPanorama(event.target.result)
-    }
-    reader.readAsDataURL(file);
-  }
-
-  function dropHandler(ev) {
-    // File(s) dropped
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
-
-    if (ev.dataTransfer.items) {
-      // Use DataTransferItemList interface to access the file(s)
-      [...ev.dataTransfer.items].forEach((item, i) => {
-
-        // If dropped items aren't files, reject them
-        if (item.kind === "file") {
-          const file = item.getAsFile();
-          console.log(`… file[${i}].name = ${file.name}`);
-          if (i === 0) { setPanoFromDroppedFile(file) }
-
-        }
-      });
-    } else {
-      // Use DataTransfer interface to access the file(s)
-      [...ev.dataTransfer.files].forEach((file, i) => {
-        if (i === 0) { setPanoFromDroppedFile(file) }
-        console.log(`… file[${i}].name = ${file.name}`);
-      });
-    }
-  }
-
-  function dragOverHandler(ev) {
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
-  }
 
 </script>
