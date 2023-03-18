@@ -8,44 +8,60 @@ function panorama_here(phtml) {
 	return async () => {
 		try {
 			const tabContext = get_uiCurrentTab().innerText
-			let  containerName
+			let containerName
 			switch (tabContext) {
 				case "txt2img":
 					containerName = "#txt2img_gallery_container"
 					break;
 				case "img2img":
 					containerName = "#img2img_gallery_container"
-				break;
+					break;
 				case "Extras":
 					containerName = "#extras_gallery_container"
-				break;
+					break;
 				default:
-					console.warn ("PanoramaViewer: Unsupported gallery: " + tabContext)
+					console.warn("PanoramaViewer: Unsupported gallery: " + tabContext)
 					return
 			}
 
-			let galviewer = gradioApp().querySelector("#panogalviewer-iframe"+tabContext)
+			let galviewer = gradioApp().querySelector("#panogalviewer-iframe" + tabContext)
 			let galImage = gradioApp().querySelector(containerName + " div > img")
 
 			if (galviewer) {
 				galviewer.parentElement.removeChild(galviewer)
-				if (galImage) galImage.style.display=galImageDisp
+				if (galImage) galImage.style.display = galImageDisp
 				return
 			}
-			
+
+			/* TODO, disabled; no suitable layout found to insert Panoviewet, yet. 
+			if (!galImage) {
+				// if no item currently selected, check if there is only one gallery-item, 
+				//so take this as it is a unique action
+				let galitems = gradioApp().querySelectorAll(containerName + " .gallery-item")
+				if (1 === galitems.length) {
+//					galitems[0].click().then( () => {
+//						gradioApp().querySelector(containerName + " ~ div #sendto_panogallery_button").click()
+//					})
+					galImage = galitems[0].querySelector("img")
+					
+				}
+			}
+			*/
+
 			// select only single viewed gallery image, not the small icons in the overview
 			if (!galImage) return
-			
+
 			let parent = galImage.parentElement
+			//let parent = gradioApp().querySelector(containerName+" > div") // omg
 
 			let iframe = document.createElement('iframe');
 			iframe.src = phtml
-			iframe.id = "panogalviewer-iframe"+tabContext
+			iframe.id = "panogalviewer-iframe" + tabContext
 			iframe.classList += "panogalviewer-iframe"
-			iframe.setAttribute("panoimage",galImage.src);
+			iframe.setAttribute("panoimage", galImage.src);
 			parent.appendChild(iframe);
 			galImageDisp = galImage.style.display
-			galImage.style.display="none"
+			galImage.style.display = "none"
 		}
 		catch
 		{ }
@@ -136,6 +152,50 @@ function openpanoramajs() {
 	openpanorama.frame = frame;
 }
 
+
+function setPanoFromDroppedFile(file) {
+    reader = new FileReader();
+    console.log(file)
+    reader.onload = function (event) {
+        panoviewer.setPanorama(event.target.result)
+    }
+    reader.readAsDataURL(file);
+}
+
+function dropHandler(ev) {
+    // File(s) dropped
+    // Prevent default behavior (Prevent file from being opened)
+    ev.preventDefault();
+
+    if (ev.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        [...ev.dataTransfer.items].forEach((item, i) => {
+
+            // If dropped items aren't files, reject them
+            if (item.kind === "file") {
+                const file = item.getAsFile();
+                console.log(`… file[${i}].name = ${file.name}`);
+                if (i === 0) { setPanoFromDroppedFile(file) }
+
+            }
+        });
+    } else {
+        // Use DataTransfer interface to access the file(s)
+        [...ev.dataTransfer.files].forEach((file, i) => {
+            if (i === 0) { setPanoFromDroppedFile(file) }
+            console.log(`… file[${i}].name = ${file.name}`);
+        });
+    }
+}
+
+function dragOverHandler(ev) {
+    // Prevent default behavior (Prevent file from being opened)
+    ev.preventDefault();
+}
+
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
 		if (gradioApp().getElementById("panoviewer-iframe")) {
@@ -146,3 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 	onload();
 });
+
+
+

@@ -17,7 +17,7 @@ def after_component(component, **kwargs):
     if kwargs.get("elem_id") == "extras_tab":
 #            with gr.Row(elem_id="pano_sendbox",variant="compact", css="justify-content: center; align-content: flex-end;"):
             basic_send_button = gr.Button("Pano \U0001F440", elem_id=f"sendto_panorama_button") # 👀
-            view_gallery_button = gr.Button ("Pano \U0001F310") # 🌐
+            view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button") # 🌐
 
             basic_send_button.click(None, [], None, _js="() => panorama_send_gallery('WebUI Resource')")
             basic_send_button.__setattr__("class","gr-button")
