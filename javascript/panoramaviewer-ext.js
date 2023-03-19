@@ -4,7 +4,7 @@ const openpanorama = {
 
 let galImageDisp
 
-function panorama_here(phtml) {
+function panorama_here(phtml, mode) {
 	return async () => {
 		try {
 			const tabContext = get_uiCurrentTab().innerText
@@ -28,7 +28,12 @@ function panorama_here(phtml) {
 			let galImage = gradioApp().querySelector(containerName + " div > img")
 
 			if (galviewer) {
-				galviewer.parentElement.removeChild(galviewer)
+
+				openpanorama.frame.contentWindow.postMessage({
+					type: "panoramaviewer/destroy"
+				})
+//instead of				galviewer.parentElement.removeChild(galviewer)
+
 				if (galImage) galImage.style.display = galImageDisp
 				return
 			}
@@ -54,12 +59,13 @@ function panorama_here(phtml) {
 			let parent = galImage.parentElement
 			//let parent = gradioApp().querySelector(containerName+" > div") // omg
 
-			let iframe = document.createElement('iframe');
+			let iframe = document.createElement('iframe')
 			iframe.src = phtml
 			iframe.id = "panogalviewer-iframe" + tabContext
 			iframe.classList += "panogalviewer-iframe"
-			iframe.setAttribute("panoimage", galImage.src);
-			parent.appendChild(iframe);
+			iframe.setAttribute("panoimage", galImage.src)
+			iframe.setAttribute("panoMode", mode)
+			parent.appendChild(iframe)
 			galImageDisp = galImage.style.display
 			galImage.style.display = "none"
 		}
@@ -77,6 +83,16 @@ function panorama_send_image(dataURL, name = "Embed Resource") {
 		},
 	});
 }
+
+function panorama_change_mode(mode) {
+	return () => {
+		openpanorama.frame.contentWindow.postMessage({
+			type: "panoramaviewer/change-mode",
+			mode: mode
+		})
+	}
+}
+
 
 function panorama_change_container(name) {
 	openpanorama.frame.contentWindow.postMessage({
@@ -154,58 +170,85 @@ function openpanoramajs() {
 
 
 function setPanoFromDroppedFile(file) {
-    reader = new FileReader();
-    console.log(file)
-    reader.onload = function (event) {
-        panoviewer.setPanorama(event.target.result)
-    }
-    reader.readAsDataURL(file);
+	reader = new FileReader();
+	console.log(file)
+	reader.onload = function (event) {
+		panoviewer.setPanorama(event.target.result)
+	}
+	reader.readAsDataURL(file);
 }
 
 function dropHandler(ev) {
-    // File(s) dropped
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
+	// File(s) dropped
+	// Prevent default behavior (Prevent file from being opened)
+	ev.preventDefault();
 
-    if (ev.dataTransfer.items) {
-        // Use DataTransferItemList interface to access the file(s)
-        [...ev.dataTransfer.items].forEach((item, i) => {
+	if (ev.dataTransfer.items) {
+		// Use DataTransferItemList interface to access the file(s)
+		[...ev.dataTransfer.items].forEach((item, i) => {
 
-            // If dropped items aren't files, reject them
-            if (item.kind === "file") {
-                const file = item.getAsFile();
-                console.log(`… file[${i}].name = ${file.name}`);
-                if (i === 0) { setPanoFromDroppedFile(file) }
+			// If dropped items aren't files, reject them
+			if (item.kind === "file") {
+				const file = item.getAsFile();
+				console.log(`… file[${i}].name = ${file.name}`);
+				if (i === 0) { setPanoFromDroppedFile(file) }
 
-            }
-        });
-    } else {
-        // Use DataTransfer interface to access the file(s)
-        [...ev.dataTransfer.files].forEach((file, i) => {
-            if (i === 0) { setPanoFromDroppedFile(file) }
-            console.log(`… file[${i}].name = ${file.name}`);
-        });
-    }
+			}
+		});
+	} else {
+		// Use DataTransfer interface to access the file(s)
+		[...ev.dataTransfer.files].forEach((file, i) => {
+			if (i === 0) { setPanoFromDroppedFile(file) }
+			console.log(`… file[${i}].name = ${file.name}`);
+		});
+	}
 }
 
 function dragOverHandler(ev) {
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
+	// Prevent default behavior (Prevent file from being opened)
+	ev.preventDefault();
 }
 
 
+
+function onPanoModeChange(x) {
+	console.log("Panorama Viewer: PanMode change to: " + x.target.value)
+}
+
+
+function onGalleryDrop(x) {
+	console.log("dropping baby: " + x)
+	x.preventDefault();
+	let g = gradioApp().querySelector("#gallery_input_ondrop textarea")
+	if (g) {
+		g.value="Helo World"
+		g.dispatchEvent(new Event('input'));
+	}
+
+}
 
 
 document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
 		if (gradioApp().getElementById("panoviewer-iframe")) {
 			openpanoramajs();
+			let target = gradioApp().getElementById("txt2img_results")
+				target.addEventListener("drop", onGalleryDrop)
+				target.addEventListener("dragover", (event) => {
+				  event.preventDefault();
+				});			
 		} else {
 			setTimeout(onload, 10);
 		}
+
+
+
+
 	};
 	onload();
 });
+
+
 
 
 
