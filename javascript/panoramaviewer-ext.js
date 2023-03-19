@@ -162,12 +162,10 @@ function panorama_send_gallery(name = "Embed Resource") {
 		});
 }
 
-
 function openpanoramajs() {
 	const frame = gradioApp().getElementById("panoviewer-iframe");
 	openpanorama.frame = frame;
 }
-
 
 function setPanoFromDroppedFile(file) {
 	reader = new FileReader();
@@ -219,8 +217,12 @@ function onPanoModeChange(x) {
 function onGalleryDrop(ev) {
 
 	const triggerGradio = (g, file) => {
-		g.value=file
-		g.dispatchEvent(new Event('input'));
+		reader = new FileReader();
+		reader.onload = function (event) {
+			g.value = event.target.result
+			g.dispatchEvent(new Event('input'));
+		}
+		reader.readAsDataURL(file);
 	}
 
 	ev.preventDefault();
@@ -235,7 +237,7 @@ function onGalleryDrop(ev) {
 			if (item.kind === "file") {
 				const file = item.getAsFile();
 				console.log(`… file[${i}].name = ${file.name}`);
-				if (i === 0) { triggerGradio(g,file) }
+				if (i === 0) { triggerGradio(g, file) }
 
 			}
 		});
@@ -254,17 +256,19 @@ document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
 		if (gradioApp().getElementById("panoviewer-iframe")) {
 			openpanoramajs();
+
 			let target = gradioApp().getElementById("txt2img_results")
-				target.addEventListener("drop", onGalleryDrop)
-				target.addEventListener("dragover", (event) => {
-				  event.preventDefault();
-				});			
+			target.addEventListener("drop", onGalleryDrop)
+			target.addEventListener("dragover", (event) => {
+				event.preventDefault();
+			});
+
+			// completely hide the transfer textbox and its container
+			gradioApp().querySelectorAll("#gallery_input_ondrop").forEach((e) => { e.parentElement.style.display = "none" })
+
 		} else {
 			setTimeout(onload, 10);
 		}
-
-
-
 
 	};
 	onload();
