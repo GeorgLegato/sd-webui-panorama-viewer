@@ -32,7 +32,7 @@ function panorama_here(phtml, mode) {
 				openpanorama.frame.contentWindow.postMessage({
 					type: "panoramaviewer/destroy"
 				})
-//instead of				galviewer.parentElement.removeChild(galviewer)
+				galviewer.parentElement.removeChild(galviewer)
 
 				if (galImage) galImage.style.display = galImageDisp
 				return
@@ -216,13 +216,35 @@ function onPanoModeChange(x) {
 }
 
 
-function onGalleryDrop(x) {
-	console.log("dropping baby: " + x)
-	x.preventDefault();
-	let g = gradioApp().querySelector("#gallery_input_ondrop textarea")
-	if (g) {
-		g.value="Helo World"
+function onGalleryDrop(ev) {
+
+	const triggerGradio = (g, file) => {
+		g.value=file
 		g.dispatchEvent(new Event('input'));
+	}
+
+	ev.preventDefault();
+
+	let g = gradioApp().querySelector("#gallery_input_ondrop textarea")
+
+	if (ev.dataTransfer.items && g) {
+		// Use DataTransferItemList interface to access the file(s)
+		[...ev.dataTransfer.items].forEach((item, i) => {
+
+			// If dropped items aren't files, reject them
+			if (item.kind === "file") {
+				const file = item.getAsFile();
+				console.log(`… file[${i}].name = ${file.name}`);
+				if (i === 0) { triggerGradio(g,file) }
+
+			}
+		});
+	} else {
+		// Use DataTransfer interface to access the file(s)
+		[...ev.dataTransfer.files].forEach((file, i) => {
+			if (i === 0) { triggerGradio(file) }
+			console.log(`… file[${i}].name = ${file.name}`);
+		});
 	}
 
 }

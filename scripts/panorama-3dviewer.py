@@ -6,6 +6,7 @@ import gradio as gr
 usefulDirs = scripts.basedir().split(os.sep)[-2:]
 iframesrc = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/viewer.html"
 
+txt2img_gallery_component = None
 
 def onPanModeChange(m):
      print ("mode changed to"+str(m))
@@ -23,9 +24,14 @@ def add_tab():
 
 
 def dropHandleGallery(x):
-     print ("on gallery drop handler: " + str(x))
-     gal  = filter(lambda obj: obj.elem_id == "txt2img_gallery", shared.demo.blocks)
-     print ("elem:" + str(gal))
+    print ("on gallery drop handler: " + str(x))
+    if (txt2img_gallery_component):
+        list = txt2img_gallery_component.value
+        list.append(str(x))
+        txt2img_gallery_component.update(value=List)
+    #     gal  = filter(lambda obj: obj.elem_id == "txt2img_gallery", shared.demo.blocks)
+    #     print ("elem:" + str(gal))
+
 
 
 def after_component(component, **kwargs):
@@ -44,6 +50,8 @@ def after_component(component, **kwargs):
             view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\")")
             view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\")")
 
+    if kwargs.get("elem_id") == "txt2img_gallery":
+        txt2img_gallery_component = component
 
 
 
