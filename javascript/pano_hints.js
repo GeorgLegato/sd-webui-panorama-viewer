@@ -2,7 +2,8 @@
 
 pano_titles = {
     "Pano 👀":"Send to Panorama Viewer Tab",
-    "Pano 🌐": "Switch between selected image and panorama view"
+    "Pano 🌐": "Switch between selected image and Equirectangular view",
+    "Pano 🧊": "Switch between selected image and CubeMap view"
 }
 
 

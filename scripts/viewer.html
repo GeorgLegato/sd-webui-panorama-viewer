@@ -6,28 +6,78 @@
 
 <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
-<script src="../javascript/panoramaviewer-ext.js" ></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/cubemap-adapter@5/index.js"></script>
+<script src="../javascript/panoramaviewer-ext.js"></script>
 
 <div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
 
 <script>
   const startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : '../docs/assets/img/startimage.jpg'
+  const panoAdapter = window.frameElement.getAttribute("panoMode") === "cubemap" ? PhotoSphereViewer.CubemapAdapter : PhotoSphereViewer.EquirectangularAdapter
+  let panoviewer
 
-  const panoviewer = new PhotoSphereViewer.Viewer({
-    container: document.querySelector('#panoramaviewer'),
-    panorama: startImage
-  })
+  function PanOptionsFor(mode) {
+    switch (mode) {
+      case "cubemap":
+        return {
+          container: document.querySelector('#panoramaviewer'),
+          adapter: panoAdapter,
+          panorama: {
+            type: 'net',
+            path: startImage
+          }
+        }
+        break
+      default:
+        return {
+          container: document.querySelector('#panoramaviewer'),
+          panorama: startImage,
+          adapter: panoAdapter
+        }
+    }
+  }
+
+  function createViewer(opts) {
+    let panObj = opts ? opts : PanOptionsFor(window.frameElement.getAttribute("panoMode"))
+    panoviewer = new PhotoSphereViewer.Viewer(panObj)
+  }
+
+  function destroyViewer() {
+      if (panoviewer) {
+        panoviewer.destroy()
+        panoviewer = null
+      }
+  }
+
+  /* main */
+  createViewer();
 
   window.addEventListener("message", ({ data, origin, source }) => {
     console.log(data.type)
     switch (data.type) {
       case "panoramaviewer/set-panorama":
         console.info(`[panorama viewer] Sending image '${data.image.dataURL}'`);
+        if (!panoviewer) createViewer()
         panoviewer.setPanorama(data.image.dataURL)
         //.then(() => /* update complete */);
         document.querySelector('#panoramaviewer').focus()
         break
+
+      case "panoramaviewer/change-mode":
+        console.info(`[panorama viewer] Changing mode to '${data.mode}'`);
+        const p = PanOptionsFor(data.mode)
+        destroyViewer()
+        createViewer(p)
+        document.querySelector('#panoramaviewer').focus()
+        break
+
+      case "panoramaviewer/destroy":
+        console.info(`[panorama viewer] Destroying message received`);
+        destroyViewer()
+        break
+
     }
+
   })
 
 

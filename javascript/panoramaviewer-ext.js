@@ -4,7 +4,7 @@ const openpanorama = {
 
 let galImageDisp
 
-function panorama_here(phtml) {
+function panorama_here(phtml, mode, buttonId) {
 	return async () => {
 		try {
 			const tabContext = get_uiCurrentTab().innerText
@@ -28,7 +28,13 @@ function panorama_here(phtml) {
 			let galImage = gradioApp().querySelector(containerName + " div > img")
 
 			if (galviewer) {
+				// not the tab... openpanorama.frame.contentWindow.postMessage({
+
+				galviewer.contentWindow.postMessage({
+					type: "panoramaviewer/destroy"
+				})
 				galviewer.parentElement.removeChild(galviewer)
+
 				if (galImage) galImage.style.display = galImageDisp
 				return
 			}
@@ -54,12 +60,13 @@ function panorama_here(phtml) {
 			let parent = galImage.parentElement
 			//let parent = gradioApp().querySelector(containerName+" > div") // omg
 
-			let iframe = document.createElement('iframe');
+			let iframe = document.createElement('iframe')
 			iframe.src = phtml
 			iframe.id = "panogalviewer-iframe" + tabContext
 			iframe.classList += "panogalviewer-iframe"
-			iframe.setAttribute("panoimage", galImage.src);
-			parent.appendChild(iframe);
+			iframe.setAttribute("panoimage", galImage.src)
+			iframe.setAttribute("panoMode", mode)
+			parent.appendChild(iframe)
 			galImageDisp = galImage.style.display
 			galImage.style.display = "none"
 		}
@@ -77,6 +84,16 @@ function panorama_send_image(dataURL, name = "Embed Resource") {
 		},
 	});
 }
+
+function panorama_change_mode(mode) {
+	return () => {
+		openpanorama.frame.contentWindow.postMessage({
+			type: "panoramaviewer/change-mode",
+			mode: mode
+		})
+	}
+}
+
 
 function panorama_change_container(name) {
 	openpanorama.frame.contentWindow.postMessage({
@@ -146,66 +163,132 @@ function panorama_send_gallery(name = "Embed Resource") {
 		});
 }
 
-
 function openpanoramajs() {
 	const frame = gradioApp().getElementById("panoviewer-iframe");
 	openpanorama.frame = frame;
 }
 
-
 function setPanoFromDroppedFile(file) {
-    reader = new FileReader();
-    console.log(file)
-    reader.onload = function (event) {
-        panoviewer.setPanorama(event.target.result)
-    }
-    reader.readAsDataURL(file);
+	reader = new FileReader();
+	console.log(file)
+	reader.onload = function (event) {
+		panoviewer.setPanorama(event.target.result)
+	}
+	reader.readAsDataURL(file);
 }
 
 function dropHandler(ev) {
-    // File(s) dropped
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
+	// File(s) dropped
+	// Prevent default behavior (Prevent file from being opened)
+	ev.preventDefault();
 
-    if (ev.dataTransfer.items) {
-        // Use DataTransferItemList interface to access the file(s)
-        [...ev.dataTransfer.items].forEach((item, i) => {
+	if (ev.dataTransfer.items) {
+		// Use DataTransferItemList interface to access the file(s)
+		[...ev.dataTransfer.items].forEach((item, i) => {
 
-            // If dropped items aren't files, reject them
-            if (item.kind === "file") {
-                const file = item.getAsFile();
-                console.log(`… file[${i}].name = ${file.name}`);
-                if (i === 0) { setPanoFromDroppedFile(file) }
+			// If dropped items aren't files, reject them
+			if (item.kind === "file") {
+				const file = item.getAsFile();
+				console.log(`… file[${i}].name = ${file.name}`);
+				if (i === 0) { setPanoFromDroppedFile(file) }
 
-            }
-        });
-    } else {
-        // Use DataTransfer interface to access the file(s)
-        [...ev.dataTransfer.files].forEach((file, i) => {
-            if (i === 0) { setPanoFromDroppedFile(file) }
-            console.log(`… file[${i}].name = ${file.name}`);
-        });
-    }
+			}
+		});
+	} else {
+		// Use DataTransfer interface to access the file(s)
+		[...ev.dataTransfer.files].forEach((file, i) => {
+			if (i === 0) { setPanoFromDroppedFile(file) }
+			console.log(`… file[${i}].name = ${file.name}`);
+		});
+	}
 }
 
 function dragOverHandler(ev) {
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
+	// Prevent default behavior (Prevent file from being opened)
+	ev.preventDefault();
 }
 
 
+
+function onPanoModeChange(x) {
+	console.log("Panorama Viewer: PanMode change to: " + x.target.value)
+}
+
+
+function onGalleryDrop(ev) {
+
+	const triggerGradio = (g, file) => {
+		reader = new FileReader();
+		reader.onload = function (event) {
+			g.value = event.target.result
+			g.dispatchEvent(new Event('input'));
+		}
+		reader.readAsDataURL(file);
+	}
+
+	ev.preventDefault();
+
+	let g = gradioApp().querySelector("div[id^='gallery_input_ondrop'] textarea")
+
+	if (ev.dataTransfer.items && g) {
+		// Use DataTransferItemList interface to access the file(s)
+		[...ev.dataTransfer.items].forEach((item, i) => {
+
+			// If dropped items aren't files, reject them
+			if (item.kind === "file") {
+				const file = item.getAsFile();
+				console.log(`… file[${i}].name = ${file.name}`);
+				if (i === 0) { triggerGradio(g, file) }
+
+			}
+		});
+	} else {
+		// Use DataTransfer interface to access the file(s)
+		[...ev.dataTransfer.files].forEach((file, i) => {
+			if (i === 0) { triggerGradio(file) }
+			console.log(`… file[${i}].name = ${file.name}`);
+		});
+	}
+
+}
 
 
 document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
-		if (gradioApp().getElementById("panoviewer-iframe")) {
-			openpanoramajs();
-		} else {
-			setTimeout(onload, 10);
+		if (gradioApp) {
+
+			let target = gradioApp().getElementById("txt2img_results")
+			if (!target) {
+				setTimeout(onload, 5);
+				return
+			}
+			target.addEventListener("drop", onGalleryDrop)
+			target.addEventListener("dragover", (event) => {
+			event.preventDefault();
+			});
+
+			// completely hide the transfer textbox and its container
+			let alldrops = gradioApp().querySelectorAll("div[id^='gallery_input_ondrop']")
+			alldrops.forEach((e) => { 
+				e.parentElement.style.display = "none" 
+			})
+
+/* no tab anymore, no functionality
+			if (gradioApp().getElementById("panoviewer-iframe")) {
+				openpanoramajs();
+			} else {
+				setTimeout(onload, 10);
+			}
+*/
+		}
+		else {
+			setTimeout(onload, 3);
 		}
 	};
 	onload();
 });
+
+
 
 
 
