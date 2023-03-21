@@ -1,18 +1,23 @@
-An extension for stable-diffusion-webui that adds a tab that lets you preview hdri-like images, exactly Equirectangular ones.
+An extension for stable-diffusion-webui that integrates panorama views in to SD galleries, that lets you preview 360° spherical images, exactly Equirectangular and Cubemaps (Polyhedron net) ones.  
+Since version 0.3 the Tab is removed in favor of two simple button beloe of the gallery.
+
 
 ## Example Result
 https://user-images.githubusercontent.com/7210708/224517208-f355a6da-c170-4656-927e-a051fc1d9f40.mp4
 
 ## Prompt: 
-```"HDRI Panorama View of some nice room..." ```
+```"HDRI Panorama View of some nice room..." ```  
 
-![00018](https://user-images.githubusercontent.com/7210708/224516685-82996c11-7187-4eda-af81-4b209349f97e.jpg)
+Use correct ratio: 
+* Equirectangular: 2:1, so like 1024x512
+* Polyhedron net (cubemap tiled): 4:3, like 1024x768
 
-![image](https://user-images.githubusercontent.com/7210708/224516606-b92f4884-3fce-4eb7-9786-1b892b5665ba.png)
+Click on Pano-Button once to get the panorama viewer, and click again to close the panorama viewer and switch back to the original gallery view.  
 
-![image](https://user-images.githubusercontent.com/7210708/224516741-ccc57e2e-5d63-4956-84b5-7f24054ed581.png)
-
-![image](https://user-images.githubusercontent.com/7210708/224516760-90480799-5c51-49c4-8e0b-afa75559aa9b.png)
+ 
+![image](https://user-images.githubusercontent.com/7210708/226761659-b0d6ce58-1b04-4f38-b4a7-3363865f9d7d.png)
+---
+![image](https://user-images.githubusercontent.com/7210708/226762019-29e70005-ebe8-4cb9-811a-37e34a2a4855.png)
 
 
 ![](about.png)
