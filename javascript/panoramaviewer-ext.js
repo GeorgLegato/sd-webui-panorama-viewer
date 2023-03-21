@@ -4,7 +4,7 @@ const openpanorama = {
 
 let galImageDisp
 
-function panorama_here(phtml, mode) {
+function panorama_here(phtml, mode, buttonId) {
 	return async () => {
 		try {
 			const tabContext = get_uiCurrentTab().innerText
@@ -28,8 +28,9 @@ function panorama_here(phtml, mode) {
 			let galImage = gradioApp().querySelector(containerName + " div > img")
 
 			if (galviewer) {
+				// not the tab... openpanorama.frame.contentWindow.postMessage({
 
-				openpanorama.frame.contentWindow.postMessage({
+				galviewer.contentWindow.postMessage({
 					type: "panoramaviewer/destroy"
 				})
 				galviewer.parentElement.removeChild(galviewer)
@@ -227,7 +228,7 @@ function onGalleryDrop(ev) {
 
 	ev.preventDefault();
 
-	let g = gradioApp().querySelector("#gallery_input_ondrop textarea")
+	let g = gradioApp().querySelector("div[id^='gallery_input_ondrop'] textarea")
 
 	if (ev.dataTransfer.items && g) {
 		// Use DataTransferItemList interface to access the file(s)
@@ -254,22 +255,35 @@ function onGalleryDrop(ev) {
 
 document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
-		if (gradioApp().getElementById("panoviewer-iframe")) {
-			openpanoramajs();
+		if (gradioApp) {
 
 			let target = gradioApp().getElementById("txt2img_results")
+			if (!target) {
+				setTimeout(onload, 5);
+				return
+			}
 			target.addEventListener("drop", onGalleryDrop)
 			target.addEventListener("dragover", (event) => {
-				event.preventDefault();
+			event.preventDefault();
 			});
 
 			// completely hide the transfer textbox and its container
-			gradioApp().querySelectorAll("#gallery_input_ondrop").forEach((e) => { e.parentElement.style.display = "none" })
+			let alldrops = gradioApp().querySelectorAll("div[id^='gallery_input_ondrop']")
+			alldrops.forEach((e) => { 
+				e.parentElement.style.display = "none" 
+			})
 
-		} else {
-			setTimeout(onload, 10);
+/* no tab anymore, no functionality
+			if (gradioApp().getElementById("panoviewer-iframe")) {
+				openpanoramajs();
+			} else {
+				setTimeout(onload, 10);
+			}
+*/
 		}
-
+		else {
+			setTimeout(onload, 3);
+		}
 	};
 	onload();
 });

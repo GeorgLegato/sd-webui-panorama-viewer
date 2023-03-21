@@ -33,8 +33,9 @@ def add_tab():
             gr.HTML(value=f"<iframe id=\"panoviewer-iframe\" class=\"border-2 border-gray-200\" src=\"{iframesrc}\" title='description'></iframe>")
 
             selectedPanMode.change(fn=onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode(\""+selectedPanMode.value+"\")")
-
-    return [(ui, "Panorama Viewer", "panorama-3dviewer")]
+    # unless we have functionality in this tab. Gallery-Viewer should be sufficient if not easier.
+#    return [(ui, "Panorama Viewer", "panorama-3dviewer")]
+    return []
 
 
 def dropHandleGallery(x):
@@ -48,27 +49,34 @@ def dropHandleGallery(x):
 def after_component(component, **kwargs):
     global gallery_input_ondrop
     global txt2img_gallery_component
-    # Add button to both txt2img and img2img tabs
+    
+    # Add our buttons after each "send to extras" button
     if kwargs.get("elem_id") == "extras_tab":
 
 #            with gr.Row(elem_id="pano_sendbox",variant="compact", css="justify-content: center; align-content: flex-end;"):
-            send2tab_button   = gr.Button ("Pano \U0001F440", elem_id=f"sendto_panorama_button")          # 👀
-            view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button")        # 🌐
-            view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button")   # 🧊
-            gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop")
-            gallery_input_ondrop.style(container=False)
 
-            send2tab_button.click(None, [], None, _js="() => panorama_send_gallery('WebUI Resource')")
-            send2tab_button.__setattr__("class","gr-button")
-            view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\")")
-            view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\")")
+            # DISABLED until we get some functionality here, two button for Equi and Cubemap is currently enough
+            #send2tab_button   = gr.Button ("Pano \U0001F440", elem_id=f"sendto_panorama_button")          # 👀
+            #send2tab_button.click(None, [], None, _js="() => panorama_send_gallery('WebUI Resource')")
+            #send2tab_button.__setattr__("class","gr-button")
+            suffix = component.parent.elem_id
+
+            if (suffix):
+                print ("Panorama_Viewer: adding sendto button in parent_elem_id: "+suffix)
+                view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
+                view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
+                gallery_input_ondrop = gr.Textbox(visible=False, elem_classes="gallery_input_ondrop", elem_id="gallery_input_ondrop_"+ suffix)
+                gallery_input_ondrop.style(container=False)
+                
+                view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
+                view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
 
             if (gallery_input_ondrop and txt2img_gallery_component):
                 gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
 
 
     if kwargs.get("elem_id") == "txt2img_gallery":
-        print ("Panorama Viewer: hooking into txt2img gallery...")
+        print ("Panorama Viewer: enable file-drag-and-drop into txt2img gallery...")
 
         txt2img_gallery_component = component
 
@@ -76,8 +84,5 @@ def after_component(component, **kwargs):
             gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
     
 
-
-
 script_callbacks.on_ui_tabs(add_tab)
 script_callbacks.on_after_component(after_component)
-
