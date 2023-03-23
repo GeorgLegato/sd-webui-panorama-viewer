@@ -65,7 +65,7 @@ def after_component(component, **kwargs):
                 print ("Panorama_Viewer: adding sendto button in parent_elem_id: "+suffix)
                 view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
                 view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
-                gallery_input_ondrop = gr.Textbox(visible=False, elem_classes="gallery_input_ondrop", elem_id="gallery_input_ondrop_"+ suffix)
+                gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
                 gallery_input_ondrop.style(container=False)
                 
                 view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
