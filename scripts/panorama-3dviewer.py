@@ -59,16 +59,20 @@ def after_component(component, **kwargs):
             #send2tab_button   = gr.Button ("Pano \U0001F440", elem_id=f"sendto_panorama_button")          # 👀
             #send2tab_button.click(None, [], None, _js="() => panorama_send_gallery('WebUI Resource')")
             #send2tab_button.__setattr__("class","gr-button")
-            suffix = component.parent.elem_id
+            if component.parent.elem_id :
+                suffix = component.parent.elem_id  
+            else :
+                suffix = "_dummy_suffix"
 
-            if (suffix):
-                view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
-                view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
-                view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
-                view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
-                
-                gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
-                gallery_input_ondrop.style(container=False)
+#            if (suffix):
+            view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
+            view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
+            view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
+            view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
+            
+            gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
+            gallery_input_ondrop.style(container=False)
+
             if (gallery_input_ondrop and txt2img_gallery_component):
                 gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
 

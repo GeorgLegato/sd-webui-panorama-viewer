@@ -7,7 +7,7 @@ let galImageDisp
 function panorama_here(phtml, mode, buttonId) {
 	return async () => {
 		try {
-			const tabContext = get_uiCurrentTab().innerText
+			let tabContext = get_uiCurrentTab().innerText
 			let containerName
 			switch (tabContext) {
 				case "txt2img":
@@ -19,9 +19,32 @@ function panorama_here(phtml, mode, buttonId) {
 				case "Extras":
 					containerName = "#extras_gallery_container"
 					break;
-				default:
+				case "Image Browser": {
+					tabContext = "IB_" + gradioApp().querySelector("#image_browser_tabs_container button.bg-white").innerText
+					switch (tabContext) {
+						case "IB_txt2img": containerName = "#image_browser_tab_txt2img_image_browser_gallery"
+							break;
+						case "IB_img2img": containerName = "#image_browser_tab_img2img_image_browser_gallery"
+							break;
+						case "IB_txt2img-grids": containerName = "#image_browser_tab_txt2img-grids_image_browser_gallery"
+							break;
+						case "IB_img2img-grids": containerName = "#image_browser_tab_img2img-grids_image_browser_gallery"
+							break;
+						case "IB_Extras": containerName = "#image_browser_tab_extras_image_browser_gallery"
+							break;
+						case "IB_Favorites": containerName = "#image_browser_tab_favorites_image_browser_gallery"
+							break;
+						default: {
+							console.warn("PanoramaViewer: Unsupported Image Browser gallery: " + tabContext)
+							return
+						}
+					}
+				}
+					break;
+				default: {
 					console.warn("PanoramaViewer: Unsupported gallery: " + tabContext)
 					return
+				}
 			}
 
 			let galviewer = gradioApp().querySelector("#panogalviewer-iframe" + tabContext)
@@ -264,22 +287,22 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 			target.addEventListener("drop", onGalleryDrop)
 			target.addEventListener("dragover", (event) => {
-			event.preventDefault();
+				event.preventDefault();
 			});
 
 			// completely hide the transfer textbox and its container
 			let alldrops = gradioApp().querySelectorAll("div[id^='gallery_input_ondrop']")
-			alldrops.forEach((e) => { 
-				e.parentElement.style.display = "none" 
+			alldrops.forEach((e) => {
+				e.parentElement.style.display = "none"
 			})
 
-/* no tab anymore, no functionality
-			if (gradioApp().getElementById("panoviewer-iframe")) {
-				openpanoramajs();
-			} else {
-				setTimeout(onload, 10);
-			}
-*/
+			/* no tab anymore, no functionality
+						if (gradioApp().getElementById("panoviewer-iframe")) {
+							openpanoramajs();
+						} else {
+							setTimeout(onload, 10);
+						}
+			*/
 		}
 		else {
 			setTimeout(onload, 3);
