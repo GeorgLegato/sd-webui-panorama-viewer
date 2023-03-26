@@ -38,17 +38,17 @@ def add_tab():
     return []
 
 
-#def dropHandleGallery(x):
-#    if (None != txt2img_gallery_component):
-#        list = txt2img_gallery_component.value
-#        img = data_url_to_image(x)
-#        list.append(img)
-#        return list
+def dropHandleGallery(x):
+    if (None != txt2img_gallery_component):
+        list = txt2img_gallery_component.value
+        img = data_url_to_image(x)
+        list.append(img)
+        return list
 
 
 def after_component(component, **kwargs):
-#    global gallery_input_ondrop
-#    global txt2img_gallery_component
+    global gallery_input_ondrop
+    global txt2img_gallery_component
     
     # Add our buttons after each "send to extras" button
     if kwargs.get("elem_id") == "extras_tab":
@@ -67,17 +67,16 @@ def after_component(component, **kwargs):
                 view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
                 view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
                 
-                #gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
-                #gallery_input_ondrop.style(container=False)
-#            if (gallery_input_ondrop and txt2img_gallery_component):
-#                gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
+                gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
+                gallery_input_ondrop.style(container=False)
+            if (gallery_input_ondrop and txt2img_gallery_component):
+                gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
 
 
     if kwargs.get("elem_id") == "txt2img_gallery":
         txt2img_gallery_component = component
-
-#        if (gallery_input_ondrop and txt2img_gallery_component):
-#            gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
+        if (gallery_input_ondrop and txt2img_gallery_component):
+            gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
     
 
 script_callbacks.on_ui_tabs(add_tab)
