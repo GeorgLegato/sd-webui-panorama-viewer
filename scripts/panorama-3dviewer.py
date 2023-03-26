@@ -7,7 +7,7 @@ import io
 from PIL import Image
 
 usefulDirs = scripts.basedir().split(os.sep)[-2:]
-iframesrc = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/viewer.html"
+iframesrc = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/tab_video.html"
 
 # js 2 gradio messaging?! how to do better?
 gallery_input_ondrop=None
@@ -29,13 +29,12 @@ def onPanModeChange(m):
 def add_tab():
     with gr.Blocks(analytics_enabled=False) as ui:
         with gr.Column():
-            selectedPanMode = gr.Dropdown(choices=["Equirectangular", "Cubemap: Polyhedron net"],value="Equirectangular",label="Select projection mode", elem_id="panoviewer_mode")
+            selectedPanMode = gr.Dropdown(choices=["Equirectangular", "Cubemap: Polyhedron net","Equi Video"],value="Equirectangular",label="Select projection mode", elem_id="panoviewer_mode")
             gr.HTML(value=f"<iframe id=\"panoviewer-iframe\" class=\"border-2 border-gray-200\" src=\"{iframesrc}\" title='description'></iframe>")
 
-            selectedPanMode.change(fn=onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode(\""+selectedPanMode.value+"\")")
-    # unless we have functionality in this tab. Gallery-Viewer should be sufficient if not easier.
-#    return [(ui, "Panorama Viewer", "panorama-3dviewer")]
-    return []
+            selectedPanMode.change(onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode")
+
+    return [(ui, "Panorama Viewer", "panorama-3dviewer")]
 
 
 def dropHandleGallery(x):

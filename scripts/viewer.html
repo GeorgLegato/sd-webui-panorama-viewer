@@ -11,13 +11,71 @@
 
 <div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
 
+
+<!--
+const baseUrl = 'https://photo-sphere-viewer-data.netlify.app/assets/';
+
+const viewer = new PhotoSphereViewer.Viewer({
+    container: 'viewer',
+    adapter: [PhotoSphereViewer.EquirectangularVideoAdapter, {
+        muted: true,
+    }],
+    caption: 'Ayutthaya <b>&copy; meetle</b>',
+    loadingImg: baseUrl + 'loader.gif',
+    touchmoveTwoFingers: true,
+    mousewheelCtrlKey: true,
+    navbar: 'video caption settings fullscreen',
+
+    plugins: [
+        PhotoSphereViewer.VideoPlugin,
+        PhotoSphereViewer.SettingsPlugin,
+        [PhotoSphereViewer.ResolutionPlugin, {
+            defaultResolution: 'HD',
+            resolutions: [
+                {
+                    id: 'UHD',
+                    label: 'Ultra high',
+                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_UHD.mp4' },
+                },
+                {
+                    id: 'FHD',
+                    label: 'High',
+                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_FHD.mp4' },
+                },
+                {
+                    id: 'HD',
+                    label: 'Standard',
+                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_HD.mp4' },
+                },
+                {
+                    id: 'SD',
+                    label: 'Low',
+                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_SD.mp4' },
+                },
+            ],
+        }],
+    ],
+});
+-->
+
 <script>
   const startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : '../docs/assets/img/startimage.jpg'
-  const panoAdapter = window.frameElement.getAttribute("panoMode") === "cubemap" ? PhotoSphereViewer.CubemapAdapter : PhotoSphereViewer.EquirectangularAdapter
+  const panoAdapter = PhotoSphereViewer.EquirectangularVideoAdapter
+  //window.frameElement.getAttribute("panoMode") === "cubemap" ? PhotoSphereViewer.CubemapAdapter : PhotoSphereViewer.EquirectangularAdapter
   let panoviewer
 
   function PanOptionsFor(mode) {
     switch (mode) {
+      case "equivideo":
+        return {
+          container: document.querySelector('#panoramaviewer'),
+          adapter: panoAdapter,
+          panorama: {
+            type: 'net',
+            path: startImage
+          }
+        }
+        break
       case "cubemap":
         return {
           container: document.querySelector('#panoramaviewer'),
