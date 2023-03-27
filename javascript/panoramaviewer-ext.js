@@ -195,7 +195,11 @@ function setPanoFromDroppedFile(file) {
 	reader = new FileReader();
 	console.log(file)
 	reader.onload = function (event) {
-		panoviewer.setPanorama({source: event.target.result})
+		if (panoviewer.adapter.hasOwnProperty("video")) {
+			panoviewer.setPanorama({source: event.target.result})
+		} else {
+			panoviewer.setPanorama(event.target.result)
+		}
 	}
 	reader.readAsDataURL(file);
 }
