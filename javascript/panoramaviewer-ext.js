@@ -109,6 +109,7 @@ function panorama_send_image(dataURL, name = "Embed Resource") {
 }
 
 function panorama_change_mode(mode) {
+	return () => {
 			openpanorama.frame.contentWindow.postMessage({
 			type: "panoramaviewer/change-mode",
 			mode: mode
@@ -194,7 +195,7 @@ function setPanoFromDroppedFile(file) {
 	reader = new FileReader();
 	console.log(file)
 	reader.onload = function (event) {
-		panoviewer.setPanorama(event.target.result)
+		panoviewer.setPanorama({source: event.target.result})
 	}
 	reader.readAsDataURL(file);
 }
