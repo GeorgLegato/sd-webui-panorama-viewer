@@ -6,26 +6,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/cubemap-adapter@5/index.js"></script>
+<<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/equirectangular-video-adapter@5/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/settings-plugin@5/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/resolution-plugin@5/index.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/settings-plugin@5/index.css">
+
 <script src="../javascript/panoramaviewer-ext.js"></script>
 
-<div id="panoramaviewer_video" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
-
-
+<div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
 
 <script>
-<!--
-const baseUrl = 'https://photo-sphere-viewer-data.netlify.app/assets/';
+
+//const baseUrl = 'https://photo-sphere-viewer-data.netlify.app/assets/';
+const baseUrl = '../docs/assets/img/'
 
 const viewer = new PhotoSphereViewer.Viewer({
-    container: 'panoramaviewer_video',
+    container: 'panoramaviewer',
     adapter: [PhotoSphereViewer.EquirectangularVideoAdapter, {
         muted: true,
     }],
     caption: 'Ayutthaya <b>&copy; meetle</b>',
     loadingImg: baseUrl + 'loader.gif',
     touchmoveTwoFingers: true,
-    mousewheelCtrlKey: true,
+    mousewheelCtrlKey: false,
     navbar: 'video caption settings fullscreen',
 
     plugins: [
@@ -47,7 +53,8 @@ const viewer = new PhotoSphereViewer.Viewer({
                 {
                     id: 'HD',
                     label: 'Standard',
-                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_HD.mp4' },
+                    panorama: { source: baseUrl + 'depthmap-0002_swing.mp4'},
+/* panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_HD.mp4' }, */
                 },
                 {
                     id: 'SD',
@@ -58,7 +65,4 @@ const viewer = new PhotoSphereViewer.Viewer({
         }],
     ],
 });
--->
-
-
 </script>
