@@ -3,7 +3,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
 </head>
-
 <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/cubemap-adapter@5/index.js"></script>
@@ -36,22 +35,18 @@
         }
     }
   }
-
   function createViewer(opts) {
     let panObj = opts ? opts : PanOptionsFor(window.frameElement.getAttribute("panoMode"))
     panoviewer = new PhotoSphereViewer.Viewer(panObj)
   }
-
   function destroyViewer() {
       if (panoviewer) {
         panoviewer.destroy()
         panoviewer = null
       }
   }
-
   /* main */
   createViewer();
-
   window.addEventListener("message", ({ data, origin, source }) => {
     console.log(data.type)
     switch (data.type) {
@@ -62,7 +57,6 @@
         //.then(() => /* update complete */);
         document.querySelector('#panoramaviewer').focus()
         break
-
       case "panoramaviewer/change-mode":
         console.info(`[panorama viewer] Changing mode to '${data.mode}'`);
         const p = PanOptionsFor(data.mode)
@@ -70,15 +64,10 @@
         createViewer(p)
         document.querySelector('#panoramaviewer').focus()
         break
-
       case "panoramaviewer/destroy":
         console.info(`[panorama viewer] Destroying message received`);
         destroyViewer()
         break
-
     }
-
   })
-
-
 </script>

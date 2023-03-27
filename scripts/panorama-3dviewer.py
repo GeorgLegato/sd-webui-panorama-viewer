@@ -7,7 +7,8 @@ import io
 from PIL import Image
 
 usefulDirs = scripts.basedir().split(os.sep)[-2:]
-iframesrc = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/viewer.html"
+iframesrc = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/tab_video.html"
+iframesrc_gal = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/viewer.html"
 
 # js 2 gradio messaging?! how to do better?
 gallery_input_ondrop=None
@@ -29,13 +30,12 @@ def onPanModeChange(m):
 def add_tab():
     with gr.Blocks(analytics_enabled=False) as ui:
         with gr.Column():
-            selectedPanMode = gr.Dropdown(choices=["Equirectangular", "Cubemap: Polyhedron net"],value="Equirectangular",label="Select projection mode", elem_id="panoviewer_mode")
+            selectedPanMode = gr.Dropdown(choices=["Equirectangular", "Cubemap: Polyhedron net","Equi Video"],value="Equirectangular",label="Select projection mode", elem_id="panoviewer_mode")
             gr.HTML(value=f"<iframe id=\"panoviewer-iframe\" class=\"border-2 border-gray-200\" src=\"{iframesrc}\" title='description'></iframe>")
 
-            selectedPanMode.change(fn=onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode(\""+selectedPanMode.value+"\")")
-    # unless we have functionality in this tab. Gallery-Viewer should be sufficient if not easier.
-#    return [(ui, "Panorama Viewer", "panorama-3dviewer")]
-    return []
+            selectedPanMode.change(onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode")
+
+    return [(ui, "Panorama Viewer", "panorama-3dviewer")]
 
 
 def dropHandleGallery(x):
@@ -67,8 +67,8 @@ def after_component(component, **kwargs):
 #            if (suffix):
             view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
             view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
-            view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
-            view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
+            view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
+            view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
             
             gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
             gallery_input_ondrop.style(container=False)

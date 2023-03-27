@@ -110,7 +110,7 @@ function panorama_send_image(dataURL, name = "Embed Resource") {
 
 function panorama_change_mode(mode) {
 	return () => {
-		openpanorama.frame.contentWindow.postMessage({
+			openpanorama.frame.contentWindow.postMessage({
 			type: "panoramaviewer/change-mode",
 			mode: mode
 		})
@@ -195,7 +195,11 @@ function setPanoFromDroppedFile(file) {
 	reader = new FileReader();
 	console.log(file)
 	reader.onload = function (event) {
-		panoviewer.setPanorama(event.target.result)
+		if (panoviewer.adapter.hasOwnProperty("video")) {
+			panoviewer.setPanorama({source: event.target.result})
+		} else {
+			panoviewer.setPanorama(event.target.result)
+		}
 	}
 	reader.readAsDataURL(file);
 }
@@ -278,7 +282,7 @@ function onGalleryDrop(ev) {
 
 document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
-		if (gradioApp) {
+		if (typeof gradioApp === "function") {
 
 			let target = gradioApp().getElementById("txt2img_results")
 			if (!target) {
@@ -296,13 +300,11 @@ document.addEventListener("DOMContentLoaded", () => {
 				e.parentElement.style.display = "none"
 			})
 
-			/* no tab anymore, no functionality
-						if (gradioApp().getElementById("panoviewer-iframe")) {
-							openpanoramajs();
-						} else {
-							setTimeout(onload, 10);
-						}
-			*/
+			if (gradioApp().getElementById("panoviewer-iframe")) {
+				openpanoramajs();
+			} else {
+				setTimeout(onload, 10);
+			}
 		}
 		else {
 			setTimeout(onload, 3);
