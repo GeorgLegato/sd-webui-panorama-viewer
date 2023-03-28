@@ -110,7 +110,7 @@ function panorama_send_image(dataURL, name = "Embed Resource") {
 
 function panorama_change_mode(mode) {
 	return () => {
-			openpanorama.frame.contentWindow.postMessage({
+		openpanorama.frame.contentWindow.postMessage({
 			type: "panoramaviewer/change-mode",
 			mode: mode
 		})
@@ -196,7 +196,7 @@ function setPanoFromDroppedFile(file) {
 	console.log(file)
 	reader.onload = function (event) {
 		if (panoviewer.adapter.hasOwnProperty("video")) {
-			panoviewer.setPanorama({source: event.target.result})
+			panoviewer.setPanorama({ source: event.target.result })
 		} else {
 			panoviewer.setPanorama(event.target.result)
 		}
@@ -236,7 +236,6 @@ function dragOverHandler(ev) {
 }
 
 
-
 function onPanoModeChange(x) {
 	console.log("Panorama Viewer: PanMode change to: " + x.target.value)
 }
@@ -246,10 +245,18 @@ function onGalleryDrop(ev) {
 
 	const triggerGradio = (g, file) => {
 		reader = new FileReader();
+
+		if (! file instanceof Blob) {
+			const blob = new Blob([file], { type: file.type });
+			file = blob
+		}
+		
 		reader.onload = function (event) {
 			g.value = event.target.result
 			g.dispatchEvent(new Event('input'));
 		}
+
+
 		reader.readAsDataURL(file);
 	}
 
@@ -272,7 +279,7 @@ function onGalleryDrop(ev) {
 	} else {
 		// Use DataTransfer interface to access the file(s)
 		[...ev.dataTransfer.files].forEach((file, i) => {
-			if (i === 0) { triggerGradio(file) }
+			if (i === 0) { triggerGradio(g, file) }
 			console.log(`… file[${i}].name = ${file.name}`);
 		});
 	}
@@ -314,6 +321,120 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+function convertto_cubemap() {
 
+	panorama_get_image_from_gallery()
+		.then((dataURL) => {
 
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
 
+			const outCanvas = document.createElement('canvas')
+
+			const settings = {
+				cubeRotation: "180",
+				interpolation: "lanczos",
+				format: "png"
+			};
+
+			const facePositions = {
+				pz: { x: 1, y: 1 },
+				nz: { x: 3, y: 1 },
+				px: { x: 2, y: 1 },
+				nx: { x: 0, y: 1 },
+				py: { x: 1, y: 0 },
+				ny: { x: 1, y: 2 },
+			};
+
+			const cubeOrgX = 4
+			const cubeOrgY = 3
+
+			function loadImage(dataURL) {
+
+				const img = new Image();
+				img.src = dataURL
+
+				img.addEventListener('load', () => {
+					const { width, height } = img;
+					canvas.width = width;
+					canvas.height = height;
+					ctx.drawImage(img, 0, 0);
+					const data = ctx.getImageData(0, 0, width, height);
+
+					outCanvas.width = width
+					outCanvas.height = (width / cubeOrgX) * cubeOrgY
+					processImage(data);
+				});
+			}
+
+			let finished = 0;
+			let workers = [];
+
+			function processImage(data) {
+				for (let worker of workers) {
+					worker.terminate();
+				}
+				for (let [faceName, position] of Object.entries(facePositions)) {
+					renderFace(data, faceName);
+				}
+			}
+
+			function renderFace(data, faceName) {
+				const options = {
+					type: "panorama/",
+					data: data,
+					face: faceName,
+					rotation: Math.PI * settings.cubeRotation / 180,
+					interpolation: settings.interpolation,
+				};
+
+				let worker
+				try {
+					throw new Error();
+				} catch (error) {
+					const stack = error.stack;
+					const matches = stack.match(/(file:\/\/.*\/)panoramaviewer-ext\.js/);
+					//if (matches && matches.length > 1 ) {
+					//const scriptPath = matches[1];
+					const scriptPath = "http://localhost:7860/file=S:/KI/stable-diffusion-webui1111/extensions/stable-diffusion-webui-panorama-3dviewer/javascript/"
+					const workerPath = new URL('e2c.js', scriptPath).href;
+					worker = new Worker(workerPath);
+					//}
+				}
+
+				const placeTile = (data) => {
+					const ctx = outCanvas.getContext('2d');
+					ctx.putImageData(data.data.data,
+						facePositions[data.data.faceName].x * outCanvas.width / cubeOrgX,
+						facePositions[data.data.faceName].y * outCanvas.height / cubeOrgY)
+
+					finished++;
+
+					if (finished === 6) {
+						finished = 0;
+						workers = [];
+
+						outCanvas.toBlob(function(blob) {
+							if (blob instanceof Blob) {
+								data = { files: [blob] };
+
+							var event = document.createEvent('MouseEvent');
+							event.dataTransfer = data;
+							onGalleryDrop(event)
+							}
+							else {
+								console.log ("no blob from toBlob?!")
+							}
+						}, 'image/png');
+					}
+				};
+
+				worker.onmessage = placeTile
+				worker.postMessage(options)
+				workers.push(worker)
+			}
+
+			loadImage(dataURL)
+
+		})
+}

@@ -70,6 +70,9 @@ def after_component(component, **kwargs):
             view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
             view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
             
+            conv_cubemap_gallery_button = gr.Button ("Pano Convert \U0001F9CA", elem_id="convertto_cubemap_button"+suffix)        # 🧊
+            conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
+
             gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
             gallery_input_ondrop.style(container=False)
 
