@@ -101,6 +101,19 @@ function panorama_here(phtml, mode, buttonId) {
 	}
 }
 
+
+
+function panorama_send_video(dataURL, name = "Embed Resource") {
+	gradioApp().getElementById("panoviewer-iframe").contentWindow.postMessage({
+		type: "panoramaviewer/set-video",
+		image: {
+			dataURL: dataURL,
+			resourceName: name,
+		},
+	});
+	
+}
+
 function panorama_send_image(dataURL, name = "Embed Resource") {
 	openpanorama.frame.contentWindow.postMessage({
 		type: "panoramaviewer/set-panorama",
@@ -424,13 +437,15 @@ function convertto_cubemap() {
 					throw new Error();
 				} catch (error) {
 					const stack = error.stack;
-					const matches = stack.match(/(file:\/\/.*\/)panoramaviewer-ext\.js/);
-					//if (matches && matches.length > 1 ) {
-					//const scriptPath = matches[1];
-					const scriptPath = "http://localhost:7860/file=S:/KI/stable-diffusion-webui1111/extensions/stable-diffusion-webui-panorama-3dviewer/javascript/"
-					const workerPath = new URL('e2c.js', scriptPath).href;
-					worker = new Worker(workerPath);
-					//}
+					const match = stack.match(/file=.*javascript\//)
+					if (match) {
+						const scriptPath = window.location.href+match;
+						const workerPath = new URL('e2c.js', scriptPath).href;
+						worker = new Worker(workerPath);
+					}
+					else {
+						throw "no clue where the javascript worker file is hosted."
+					}
 				}
 
 				const placeTile = (data) => {
