@@ -64,17 +64,18 @@ def after_component(component, **kwargs):
             else :
                 suffix = "_dummy_suffix"
 
-#            if (suffix):
-            view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
-            view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
-            view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
-            view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
-            
-            conv_cubemap_gallery_button = gr.Button ("Pano Convert \U0001F9CA", elem_id="convertto_cubemap_button"+suffix)        # 🧊
-            conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
+            with gr.Accordion("Panorama", open=False, elem_id="PanoramaViewer_ToolBox", visible=True):
+                    with gr.Row():
+                        view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
+                        view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
+                        view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
+                        view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
+                        
+                        conv_cubemap_gallery_button = gr.Button ("Pano Convert \U0001F9CA", elem_id="convertto_cubemap_button"+suffix)        # 🧊
+                        conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
 
-            gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
-            gallery_input_ondrop.style(container=False)
+                        gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
+                        gallery_input_ondrop.style(container=False)
 
             if (gallery_input_ondrop and txt2img_gallery_component):
                 gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 

@@ -246,11 +246,11 @@ function onGalleryDrop(ev) {
 	const triggerGradio = (g, file) => {
 		reader = new FileReader();
 
-		if (! file instanceof Blob) {
+		if (!file instanceof Blob) {
 			const blob = new Blob([file], { type: file.type });
 			file = blob
 		}
-		
+
 		reader.onload = function (event) {
 			g.value = event.target.result
 			g.dispatchEvent(new Event('input'));
@@ -289,11 +289,12 @@ function onGalleryDrop(ev) {
 
 document.addEventListener("DOMContentLoaded", () => {
 	const onload = () => {
+
 		if (typeof gradioApp === "function") {
 
 			let target = gradioApp().getElementById("txt2img_results")
 			if (!target) {
-				setTimeout(onload, 5);
+				setTimeout(onload, 3000);
 				return
 			}
 			target.addEventListener("drop", onGalleryDrop)
@@ -310,17 +311,43 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (gradioApp().getElementById("panoviewer-iframe")) {
 				openpanoramajs();
 			} else {
-				setTimeout(onload, 10);
+				setTimeout(onload, 3000);
 			}
+
+			/* do the toolbox tango */
+			console.log("PanoViewer: toolbox tango")
+			gradioApp().querySelectorAll("#PanoramaViewer_ToolBox div ~ div").forEach((e) => {
+				console.log("PanoViewer: toolbox tango2")
+
+				const options = {
+				  attributes: true
+				}
+				
+				function callback(mutationList, observer) {
+				  mutationList.forEach(function(mutation) {
+					if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+						console.log("PanoViewer: toolbox tango3")
+						mutation.target.parentElement.style.flex=target.classList.contains("!hidden")?"100%":"auto"
+					}
+				  })
+				}
+				
+				const observer = new MutationObserver(callback)
+				observer.observe(e, options)
+			})
+
+
+
 		}
 		else {
-			setTimeout(onload, 3);
+			setTimeout(onload, 3000);
 		}
 	};
 	onload();
 });
 
 
+/* routine based on jerx/github, gpl3 */
 function convertto_cubemap() {
 
 	panorama_get_image_from_gallery()
@@ -414,16 +441,16 @@ function convertto_cubemap() {
 						finished = 0;
 						workers = [];
 
-						outCanvas.toBlob(function(blob) {
+						outCanvas.toBlob(function (blob) {
 							if (blob instanceof Blob) {
 								data = { files: [blob] };
 
-							var event = document.createEvent('MouseEvent');
-							event.dataTransfer = data;
-							onGalleryDrop(event)
+								var event = document.createEvent('MouseEvent');
+								event.dataTransfer = data;
+								onGalleryDrop(event)
 							}
 							else {
-								console.log ("no blob from toBlob?!")
+								console.log("no blob from toBlob?!")
 							}
 						}, 'image/png');
 					}
