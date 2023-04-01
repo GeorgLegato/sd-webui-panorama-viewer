@@ -62,6 +62,9 @@ function panorama_here(phtml, mode, buttonId) {
 				return
 			}
 
+			/* close mimics to open a none-iframe */
+			if (!phtml) return
+
 			/* TODO, disabled; no suitable layout found to insert Panoviewet, yet. 
 			if (!galImage) {
 				// if no item currently selected, check if there is only one gallery-item, 
@@ -201,7 +204,14 @@ function setPanoFromDroppedFile(file) {
 			panoviewer.setPanorama(event.target.result)
 		}
 	}
-	reader.readAsDataURL(file);
+
+	/* comes from upload button */
+	if (file.hasOwnProperty("data")) {
+		panoviewer.setPanorama({ source: file.data })
+	}
+	else {
+		reader.readAsDataURL(file);
+	}
 }
 
 function dropHandler(ev) {
@@ -315,29 +325,23 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 
 			/* do the toolbox tango */
-			console.log("PanoViewer: toolbox tango")
 			gradioApp().querySelectorAll("#PanoramaViewer_ToolBox div ~ div").forEach((e) => {
-				console.log("PanoViewer: toolbox tango2")
 
 				const options = {
-				  attributes: true
+					attributes: true
 				}
-				
+
 				function callback(mutationList, observer) {
-				  mutationList.forEach(function(mutation) {
-					if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-						console.log("PanoViewer: toolbox tango3")
-						mutation.target.parentElement.style.flex=target.classList.contains("!hidden")?"100%":"auto"
-					}
-				  })
+					mutationList.forEach(function (mutation) {
+						if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+							mutation.target.parentElement.style.flex = target.classList.contains("!hidden") ? "100%" : "auto"
+						}
+					})
 				}
-				
+
 				const observer = new MutationObserver(callback)
 				observer.observe(e, options)
 			})
-
-
-
 		}
 		else {
 			setTimeout(onload, 3000);

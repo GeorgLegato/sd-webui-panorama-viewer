@@ -26,14 +26,16 @@ def data_url_to_image(data_url):
 def onPanModeChange(m):
      print ("mode changed to"+str(m))
 
-
 def add_tab():
     with gr.Blocks(analytics_enabled=False) as ui:
         with gr.Column():
-            selectedPanMode = gr.Dropdown(choices=["Equirectangular", "Cubemap: Polyhedron net","Equi Video"],value="Equirectangular",label="Select projection mode", elem_id="panoviewer_mode")
+#            selectedPanMode = gr.Dropdown(choices=["Equirectangular", "Cubemap: Polyhedron net","Equi Video"],value="Equirectangular",label="Select projection mode", elem_id="panoviewer_mode")
+#            selectedPanMode.change(onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode")
+
+            upload_button = gr.UploadButton("Upload movie...", file_types=["video"], file_count="single")
+            upload_button.upload(fn=None, inputs=upload_button, outputs=None, _js="setPanoFromDroppedFile")
             gr.HTML(value=f"<iframe id=\"panoviewer-iframe\" class=\"border-2 border-gray-200\" src=\"{iframesrc}\" title='description'></iframe>")
 
-            selectedPanMode.change(onPanModeChange, inputs=[selectedPanMode],outputs=[], _js="panorama_change_mode")
 
     return [(ui, "Panorama Viewer", "panorama-3dviewer")]
 
@@ -59,20 +61,25 @@ def after_component(component, **kwargs):
             #send2tab_button   = gr.Button ("Pano \U0001F440", elem_id=f"sendto_panorama_button")          # 👀
             #send2tab_button.click(None, [], None, _js="() => panorama_send_gallery('WebUI Resource')")
             #send2tab_button.__setattr__("class","gr-button")
-            if component.parent.elem_id :
-                suffix = component.parent.elem_id  
-            else :
-                suffix = "_dummy_suffix"
+            if (not component.parent.elem_id): return
+            if (component.parent.elem_id == "image_buttons_txt2img" or component.parent.elem_id == "image_buttons_img2img" or component.parent.elem_id == "image_buttons_extras"):                    
+                suffix = component.parent.elem_id
+            else:
+                return
 
             with gr.Accordion("Panorama", open=False, elem_id="PanoramaViewer_ToolBox", visible=True):
                     with gr.Row():
-                        view_gallery_button = gr.Button ("Pano \U0001F310", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
-                        view_cube_button    = gr.Button ("Pano \U0001F9CA", elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
+                        view_gallery_button = gr.Button ("\U0001F310", variant="tool", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
+                        view_cube_button    = gr.Button ("\U0001F9CA", variant="tool",elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
                         view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
                         view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
                         
-                        conv_cubemap_gallery_button = gr.Button ("Pano Convert \U0001F9CA", elem_id="convertto_cubemap_button"+suffix)        # 🧊
+                        #╬═
+                        conv_cubemap_gallery_button = gr.Button ("\U0000271C", variant="tool", elem_id="convertto_cubemap_button"+suffix)  #✜
                         conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
+
+                        close_panoviewer = gr.Button("\U0000274C", variant="tool") # ❌
+                        close_panoviewer.click(None,[],None,_js="panorama_here(\"""\",\"\",\"""\")" )
 
                         gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)
                         gallery_input_ondrop.style(container=False)
