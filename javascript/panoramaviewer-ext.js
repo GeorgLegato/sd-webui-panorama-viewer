@@ -156,12 +156,19 @@ function panorama_gototab(tabname = "Panorama Viewer", tabsId = "tabs") {
 
 
 async function panorama_get_image_from_gallery() {
+	const curGal =  gradioApp().querySelector('#tabs button.selected').innerText // get_uiCurrentTab()
+
+	const buttons = gradioApp().querySelectorAll("#"+curGal+"_gallery .grid-container button")
+	const button = gradioApp().querySelector("#"+curGal+"_gallery .grid-container button.selected")
+
+	/* pre Gradio 3.23 
 	var buttons = gradioApp().querySelectorAll(
 		'[style="display: block;"].tabitem div[id$=_gallery] .gallery-item'
 	);
 	var button = gradioApp().querySelector(
 		'[style="display: block;"].tabitem div[id$=_gallery] .gallery-item.\\!ring-2'
 	);
+	*/
 
 	if (!button) button = buttons[0];
 
