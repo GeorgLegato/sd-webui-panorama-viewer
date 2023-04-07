@@ -5,6 +5,7 @@ pano_titles = {
     "🌐": "Switch between selected image and Equirectangular view",
     "🧊": "Switch between selected image and CubeMap view",
 	"✜": "Convert current spherical map into cubemap (for better outpainting)",
+	"💫": "Convert current cubemap to equirectangular map (for better upscaling)",
 	"❌": "Close current panorama viewer"
 }
 
