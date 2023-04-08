@@ -374,6 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+/* routine based on a c# snippet in stackoverflow */
 function convertto_equi() {
 
 	panorama_get_image_from_gallery()
@@ -393,7 +394,7 @@ function convertto_equi() {
 				const sourceTexture = ctx.getImageData(0, 0, width, height);
 
 				const outputWidth = sourceTexture.width
-				const outputHeight = sourceTexture.height /1.5
+				const outputHeight = sourceTexture.height / 1.5
 
 				let equiTexture = new ImageData(outputWidth, outputHeight);
 				let u, v; // Normalised texture coordinates, from 0 to 1, starting at lower left corner
@@ -404,8 +405,8 @@ function convertto_equi() {
 
 
 				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
-				
-				for (let j = 0; j < equiTexture.height; j++) {
+
+				for (let j = equiTexture.height-1; j >= 0; j--) {
 					// Rows start from the bottom
 					v = 1 - (j / equiTexture.height);
 					theta = v * Math.PI;
@@ -492,10 +493,10 @@ function convertto_equi() {
 
 						const index = 4 * (xPixel + yPixel * sourceTexture.width);
 						const tindex = 4 * (i + j * equiTexture.width);
-						equiTexture.data[tindex] = sourceTexture.data[index    ];  // red   color
-						equiTexture.data[tindex+1] = sourceTexture.data[index + 1];  // green color
-						equiTexture.data[tindex+2] = sourceTexture.data[index + 2];  // blue  color
-						equiTexture.data[tindex+3] = sourceTexture.data[index + 3];
+						equiTexture.data[tindex] = sourceTexture.data[index];  // red   color
+						equiTexture.data[tindex + 1] = sourceTexture.data[index + 1];  // green color
+						equiTexture.data[tindex + 2] = sourceTexture.data[index + 2];  // blue  color
+						equiTexture.data[tindex + 3] = sourceTexture.data[index + 3];
 					}
 
 				}
@@ -508,7 +509,7 @@ function convertto_equi() {
 
 				const equiImageData = equiCtx.createImageData(outputWidth, outputHeight);
 				equiImageData.data.set(equiTexture);
-				equiCtx.putImageData(equiImageData, 0, 0);
+				equiCtx.putImageData(equiTexture, 0, 0);
 
 				equiCanvas.toBlob(function (blob) {
 					if (blob instanceof Blob) {
@@ -525,219 +526,6 @@ function convertto_equi() {
 			})
 		})
 }
-/* routine based on disseminate/cube2equi github.com, default Github license 
-function convertto_equi__() {
-	// W, H are output size width
-	let W, H
-	const EquiCoordToPolar = (x, y) => {
-		const xNorm = (2 * x / W) - 1;
-		const yNorm = 1 - (2 * y / H);
-
-		const theta = xNorm * Math.PI;
-		const phi = Math.asin(yNorm);
-
-		return [theta, phi];
-	};
-
-	const PolarToUnitVector = (theta, phi) => {
-		const x = Math.cos(phi) * Math.cos(theta);
-		const y = Math.sin(phi);
-		const z = Math.cos(phi) * Math.sin(theta);
-
-		return [x, y, z];
-	};
-
-	const DotProduct = (a, b) => {
-		return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-	};
-
-	const Normalize = (a) => {
-		const len = Math.sqrt(DotProduct(a, a));
-		return [a[0] / len, a[1] / len, a[2] / len];
-	};
-
-	const Mul = (a, scalar) => {
-		return [a[0] * scalar, a[1] * scalar, a[2] * scalar];
-	};
-
-	SIDE_BACK = 1;
-	SIDE_LEFT = 5;
-	SIDE_FRONT = 0;
-	SIDE_RIGHT = 4;
-	SIDE_TOP = 2;
-	SIDE_BOTTOM = 3;
-
-	const IntersectRayWithPlane = (side, normal, p0, ray) => {
-		const denom = DotProduct(normal, ray);
-		if (Math.abs(denom) > 0.0000001) {
-			const t = DotProduct(p0, normal) / denom;
-
-			if (t >= 0) {
-				const newVec = Mul(ray, t);
-				if (side === SIDE_LEFT) {
-					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[1] >= -1 && newVec[1] <= 1) {
-						return [(newVec[0] + 1) / 2, (newVec[1] + 1) / 2];
-					}
-				} else if (side === SIDE_RIGHT) {
-					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[1] >= -1 && newVec[1] <= 1) {
-						return [1 - (newVec[0] + 1) / 2, (newVec[1] + 1) / 2];
-					}
-				} else if (side === SIDE_FRONT) {
-					if (newVec[1] >= -1 && newVec[1] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
-						return [(newVec[2] + 1) / 2, (newVec[1] + 1) / 2];
-					}
-				} else if (side === SIDE_BACK) {
-					if (newVec[1] >= -1 && newVec[1] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
-						return [1 - (newVec[2] + 1) / 2, 1 - (newVec[1] + 1) / 2];
-					}
-				} else if (side === SIDE_TOP) {
-					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
-						return [1 - (newVec[0] + 1) / 2, 1 - (newVec[2] + 1) / 2];
-					}
-				} else if (side === SIDE_BOTTOM) {
-					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
-						return [(newVec[0] + 1) / 2, (newVec[2] + 1) / 2];
-					}
-				}
-			}
-		}
-	};
-
-	const MV = (vec) => {
-		return [-vec[0], -vec[1], -vec[2]];
-	};
-
-	const IntersectRayWithBoxes = (ray) => {
-		let t;
-
-		const boxes = [
-			[1, 0, 0],
-			[-1, 0, 0],
-			[0, 1, 0],
-			[0, -1, 0],
-			[0, 0, 1],
-			[0, 0, -1],
-		];
-
-		for (let i = 0; i < boxes.length; i++) {
-			xy = IntersectRayWithPlane(i, MV(boxes[i]), boxes[i], Normalize(ray));
-			if (xy !== undefined) {
-				return [i, xy[0], xy[1]];
-			}
-		}
-	};
-
-	const SideXYToCubemap = (side, x, y) => {
-		let newY, newX;
-		switch (side) {
-			case SIDE_BACK:
-				newY = (1 / 3) + y * (1 / 3);
-				return [x * 0.25, newY];
-			case SIDE_LEFT:
-				newY = (2 / 3) - y * (1 / 3);
-				return [0.25 + x * 0.25, newY];
-			case SIDE_FRONT:
-				newY = (2 / 3) - y * (1 / 3);
-				return [0.5 + x * 0.25, newY];
-			case SIDE_RIGHT:
-				newY = (2 / 3) - y * (1 / 3);
-				return [0.75 + x * 0.25, newY];
-			case SIDE_TOP:
-				newY = y * (1 / 3);
-				newX = 0.5 - x * 0.25;
-				return [newX, newY];
-			case SIDE_BOTTOM:
-				newY = (2 / 3) + y * (1 / 3);
-				newX = 0.25 + x * 0.25;
-				return [newX, newY];
-		}
-	};
-
-	function doIt() {
-		W = png.width;
-		H = W / 2;
-
-		const outPNG = new PNG({
-			width: W,
-			height: H,
-			colorType: 2,
-			inputHasAlpha: false
-		});
-
-		for (let j = 0; j < H; j++) {
-			for (let i = 0; i < W; i++) {
-				const angs = EquiCoordToPolar(i, j);
-				const ray = PolarToUnitVector(angs[0], angs[1]);
-				const sxc = IntersectRayWithBoxes(ray);
-				const xy = SideXYToCubemap(sxc[0], sxc[1], sxc[2]);
-
-				const sampleX = Math.floor(xy[0] * png.width);
-				const sampleY = Math.floor(xy[1] * png.height);
-
-				const idx = (png.width * sampleY + sampleX) << 2;
-				const oidx = (W * j + i) * 3;
-
-				outPNG.data[oidx] = png.data[idx];
-				outPNG.data[oidx + 1] = png.data[idx + 1];
-				outPNG.data[oidx + 2] = png.data[idx + 2];
-			}
-		}
-
-		const outBuffer = PNG.sync.write(outPNG);
-		const blob = new Blob([outBuffer], { type: 'image/png' });
-
-		//const dataTransfer = new DataTransfer();
-		//dataTransfer.items.add(new File([blob], 'equi.png', { type: 'image/png' }));
-		// Transfer the image data to another element
-		//const targetElement = document.getElementById('target');
-		//targetElement.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dataTransfer }));
-		if (blob instanceof Blob) {
-			data = { files: [blob] };
-			var event = document.createEvent('MouseEvent');
-			event.dataTransfer = data;
-			onGalleryDrop(event);
-		}
-		else {
-			console.log("no blob from toBlob?!");
-		}
-	}
-
-	function handlePNGParsed(error, png) {
-		if (error) {
-			console.error('Failed to parse PNG:', error);
-			return;
-		}
-		doIt(png)
-	}
-
-	panorama_get_image_from_gallery()
-		.then((dataURL) => {
-
-			const canvas = document.createElement('canvas')
-			const ctx = canvas.getContext('2d')
-
-			const img = new Image();
-			img.src = dataURL
-
-			img.addEventListener('load', () => {
-				const { width, height } = img;
-				canvas.width = width;
-				canvas.height = height;
-				ctx.drawImage(img, 0, 0);
-				const data = ctx.getImageData(0, 0, width, height);
-
-				const png = new PNG({
-					width: canvas.width,
-					height: canvas.height
-				});
-
-				// Copy the pixel data from the ImageData object to the PNG object
-				png.data.set(imageData.data);
-				doIt(png);
-			});
-		})
-}
-*/
 
 /* routine based on jerx/github, gpl3 */
 function convertto_cubemap() {
@@ -781,7 +569,7 @@ function convertto_cubemap() {
 					const data = ctx.getImageData(0, 0, width, height);
 
 					outCanvas.width = width
-					outCanvas.height = (width / cubeOrgX) * cubeOrgY
+					outCanvas.height = height*1.5
 					processImage(data);
 				});
 			}
