@@ -1,3 +1,6 @@
+let exports = {}
+//import { PNG } from "./pngjs";
+
 const openpanorama = {
 	frame: null
 };
@@ -366,105 +369,242 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+function convertto_equi() {
 
-/* routine based on disseminate/cube2equi github.com, default Github license */
-function convertto_cubemap() {
-	const PNG = require( 'pngjs' ).PNG;
-	
-	program
-		.version( '0.1.0' )
-		.option( '-i, --input <file>', 'Input cubemap image' )
-		.option( '-o, --output [file]', 'Output cubemap image' )
-		.option( '-w, --width <n>', 'Output cubemap size', parseInt )
-		.option( '-h, --height <n>', 'Output cubemap height', parseInt )
-		.parse( process.argv );
-	
-	const W = program.width || 2048;
-	const H = program.height || 1024;
-	
-	const out = program.output || 'out.png';
-	
+	panorama_get_image_from_gallery()
+		.then((dataURL) => {
+
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
+
+			const img = new Image();
+			img.src = dataURL
+
+			img.addEventListener('load', () => {
+				const { width, height } = img;
+				canvas.width = width;
+				canvas.height = height;
+				ctx.drawImage(img, 0, 0);
+				const sourceTexture = ctx.getImageData(0, 0, width, height);
+
+				const outputWidth = sourceTexture.width
+				const outputHeight = sourceTexture.height /1.5
+
+				let equiTexture = new ImageData(outputWidth, outputHeight);
+				let u, v; // Normalised texture coordinates, from 0 to 1, starting at lower left corner
+				let phi, theta; // Polar coordinates
+
+				const cubeFaceWidth = sourceTexture.width / 4; // 4 horizontal faces
+				const cubeFaceHeight = sourceTexture.height / 3; // 3 vertical faces
+
+
+				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
+				
+				for (let j = 0; j < equiTexture.height; j++) {
+					// Rows start from the bottom
+					v = 1 - (j / equiTexture.height);
+					theta = v * Math.PI;
+
+					for (let i = 0; i < equiTexture.width; i++) {
+
+						// Columns start from the left
+						u = (i / equiTexture.width);
+						phi = u * 2 * Math.PI;
+
+						let x, y, z; // Unit vector
+						x = Math.sin(phi) * Math.sin(theta) * -1;
+						y = Math.cos(theta);
+						z = Math.cos(phi) * Math.sin(theta) * -1;
+
+						let xa, ya, za;
+						let a;
+
+						a = Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
+
+						// Vector Parallel to the unit vector that lies on one of the cube faces
+						xa = x / a;
+						ya = y / a;
+						za = z / a;
+
+						let xPixel, yPixel;
+						let xOffset, yOffset;
+
+						if (xa == 1) {
+							// Right
+							xPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceWidth) - 0.5);
+							xOffset = 2 * cubeFaceWidth; // Offset
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight; // Offset
+						}
+						else if (xa == -1) {
+							// Left
+							xPixel = Math.round(((((za + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = 0;
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (ya == 1) {
+							// Up
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceHeight) - 0.5);
+							yOffset = 2 * cubeFaceHeight;
+						}
+						else if (ya == -1) {
+							// Down
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0, 5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = 0;
+						}
+						else if (za == 1) {
+							// Front
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((ya + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (za == -1) {
+							//Back
+							xPixel = ~~((((xa + 1) / 2) - 1) * cubeFaceWidth);
+							xOffset = 3 * cubeFaceWidth;
+							yPixel = ~~((((ya + 1) / 2)) * cubeFaceHeight);
+							yOffset = cubeFaceHeight;
+						}
+						else {
+							console.warn("Unknown face, something went wrong");
+							xPixel = 0;
+							yPixel = 0;
+							xOffset = 0;
+							yOffset = 0;
+						}
+
+						xPixel = Math.abs(xPixel);
+						yPixel = Math.abs(yPixel);
+
+						xPixel += xOffset;
+						yPixel += yOffset;
+
+						const index = 4 * (xPixel + yPixel * sourceTexture.width);
+						const tindex = 4 * (i + j * equiTexture.width);
+						equiTexture.data[tindex] = sourceTexture.data[index    ];  // red   color
+						equiTexture.data[tindex+1] = sourceTexture.data[index + 1];  // green color
+						equiTexture.data[tindex+2] = sourceTexture.data[index + 2];  // blue  color
+						equiTexture.data[tindex+3] = sourceTexture.data[index + 3];
+					}
+
+				}
+
+				// create canvas and draw equirectangular pixels in it
+				const equiCanvas = document.createElement('canvas');
+				equiCanvas.width = outputWidth;
+				equiCanvas.height = outputHeight;
+				const equiCtx = equiCanvas.getContext('2d');
+
+				const equiImageData = equiCtx.createImageData(outputWidth, outputHeight);
+				equiImageData.data.set(equiTexture);
+				equiCtx.putImageData(equiImageData, 0, 0);
+
+				equiCanvas.toBlob(function (blob) {
+					if (blob instanceof Blob) {
+						data = { files: [blob] };
+
+						var event = document.createEvent('MouseEvent');
+						event.dataTransfer = data;
+						onGalleryDrop(event)
+					}
+					else {
+						console.log("no blob from toBlob?!")
+					}
+				}, 'image/png');
+			})
+		})
+}
+/* routine based on disseminate/cube2equi github.com, default Github license 
+function convertto_equi__() {
+	// W, H are output size width
+	let W, H
 	const EquiCoordToPolar = (x, y) => {
-		const xNorm = ( 2 * x / W ) - 1;
-		const yNorm = 1 - ( 2 * y / H );
-	
+		const xNorm = (2 * x / W) - 1;
+		const yNorm = 1 - (2 * y / H);
+
 		const theta = xNorm * Math.PI;
-		const phi = Math.asin( yNorm );
-	
+		const phi = Math.asin(yNorm);
+
 		return [theta, phi];
 	};
-	
+
 	const PolarToUnitVector = (theta, phi) => {
-		const x = Math.cos( phi ) * Math.cos( theta );
-		const y = Math.sin( phi );
-		const z = Math.cos( phi ) * Math.sin( theta );
-	
+		const x = Math.cos(phi) * Math.cos(theta);
+		const y = Math.sin(phi);
+		const z = Math.cos(phi) * Math.sin(theta);
+
 		return [x, y, z];
 	};
-	
+
 	const DotProduct = (a, b) => {
 		return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 	};
-	
+
 	const Normalize = (a) => {
-		const len = Math.sqrt( DotProduct( a, a ) );
+		const len = Math.sqrt(DotProduct(a, a));
 		return [a[0] / len, a[1] / len, a[2] / len];
 	};
-	
+
 	const Mul = (a, scalar) => {
 		return [a[0] * scalar, a[1] * scalar, a[2] * scalar];
 	};
-	
+
 	SIDE_BACK = 1;
 	SIDE_LEFT = 5;
 	SIDE_FRONT = 0;
 	SIDE_RIGHT = 4;
 	SIDE_TOP = 2;
 	SIDE_BOTTOM = 3;
-	
+
 	const IntersectRayWithPlane = (side, normal, p0, ray) => {
-		const denom = DotProduct( normal, ray );
-		if( Math.abs( denom ) > 0.0000001 ) {
-			const t = DotProduct( p0, normal ) / denom;
-			
-			if( t >= 0 ) {
+		const denom = DotProduct(normal, ray);
+		if (Math.abs(denom) > 0.0000001) {
+			const t = DotProduct(p0, normal) / denom;
+
+			if (t >= 0) {
 				const newVec = Mul(ray, t);
-				if( side === SIDE_LEFT ) {
-					if( newVec[0] >= -1 && newVec[0] <= 1 && newVec[1] >= -1 && newVec[1] <= 1 ) {
+				if (side === SIDE_LEFT) {
+					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[1] >= -1 && newVec[1] <= 1) {
 						return [(newVec[0] + 1) / 2, (newVec[1] + 1) / 2];
 					}
-				} else if( side === SIDE_RIGHT ) {
-					if( newVec[0] >= -1 && newVec[0] <= 1 && newVec[1] >= -1 && newVec[1] <= 1 ) {
+				} else if (side === SIDE_RIGHT) {
+					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[1] >= -1 && newVec[1] <= 1) {
 						return [1 - (newVec[0] + 1) / 2, (newVec[1] + 1) / 2];
 					}
-				} else if( side === SIDE_FRONT ) {
-					if( newVec[1] >= -1 && newVec[1] <= 1 && newVec[2] >= -1 && newVec[2] <= 1 ) {
+				} else if (side === SIDE_FRONT) {
+					if (newVec[1] >= -1 && newVec[1] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
 						return [(newVec[2] + 1) / 2, (newVec[1] + 1) / 2];
 					}
-				} else if( side === SIDE_BACK ) {
-					if( newVec[1] >= -1 && newVec[1] <= 1 && newVec[2] >= -1 && newVec[2] <= 1 ) {
+				} else if (side === SIDE_BACK) {
+					if (newVec[1] >= -1 && newVec[1] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
 						return [1 - (newVec[2] + 1) / 2, 1 - (newVec[1] + 1) / 2];
 					}
-				} else if( side === SIDE_TOP ) {
-					if( newVec[0] >= -1 && newVec[0] <= 1 && newVec[2] >= -1 && newVec[2] <= 1 ) {
+				} else if (side === SIDE_TOP) {
+					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
 						return [1 - (newVec[0] + 1) / 2, 1 - (newVec[2] + 1) / 2];
 					}
-				} else if( side === SIDE_BOTTOM ) {
-					if( newVec[0] >= -1 && newVec[0] <= 1 && newVec[2] >= -1 && newVec[2] <= 1 ) {
+				} else if (side === SIDE_BOTTOM) {
+					if (newVec[0] >= -1 && newVec[0] <= 1 && newVec[2] >= -1 && newVec[2] <= 1) {
 						return [(newVec[0] + 1) / 2, (newVec[2] + 1) / 2];
 					}
 				}
 			}
 		}
 	};
-	
+
 	const MV = (vec) => {
 		return [-vec[0], -vec[1], -vec[2]];
 	};
-	
+
 	const IntersectRayWithBoxes = (ray) => {
 		let t;
-	
+
 		const boxes = [
 			[1, 0, 0],
 			[-1, 0, 0],
@@ -473,80 +613,126 @@ function convertto_cubemap() {
 			[0, 0, 1],
 			[0, 0, -1],
 		];
-	
-		for( let i = 0; i < boxes.length; i++ ) {
+
+		for (let i = 0; i < boxes.length; i++) {
 			xy = IntersectRayWithPlane(i, MV(boxes[i]), boxes[i], Normalize(ray));
-			if( xy !== undefined ) {
+			if (xy !== undefined) {
 				return [i, xy[0], xy[1]];
 			}
 		}
 	};
-	
+
 	const SideXYToCubemap = (side, x, y) => {
 		let newY, newX;
-		switch(side) {
+		switch (side) {
 			case SIDE_BACK:
-				newY = (1/3) + y * (1/3);
+				newY = (1 / 3) + y * (1 / 3);
 				return [x * 0.25, newY];
 			case SIDE_LEFT:
-				newY = (2/3) - y * (1/3);
+				newY = (2 / 3) - y * (1 / 3);
 				return [0.25 + x * 0.25, newY];
 			case SIDE_FRONT:
-				newY = (2/3) - y * (1/3);
+				newY = (2 / 3) - y * (1 / 3);
 				return [0.5 + x * 0.25, newY];
 			case SIDE_RIGHT:
-				newY = (2/3) - y * (1/3);
+				newY = (2 / 3) - y * (1 / 3);
 				return [0.75 + x * 0.25, newY];
 			case SIDE_TOP:
-				newY = y * ( 1/3 );
+				newY = y * (1 / 3);
 				newX = 0.5 - x * 0.25;
 				return [newX, newY];
 			case SIDE_BOTTOM:
-				newY = (2/3) + y * ( 1/3 );
+				newY = (2 / 3) + y * (1 / 3);
 				newX = 0.25 + x * 0.25;
 				return [newX, newY];
 		}
 	};
-	
-	fs.createReadStream( program.input )
-	.pipe( new PNG({
-		filterType: 4
-	}) )
-	.on( 'parsed', function() {
-		const png = this;
-	
-		const outPNG = new PNG( {
+
+	function doIt() {
+		W = png.width;
+		H = W / 2;
+
+		const outPNG = new PNG({
 			width: W,
 			height: H,
 			colorType: 2,
 			inputHasAlpha: false
 		});
-	
-		for( let j = 0; j < H; j++ ) {
-			for( let i = 0; i < W; i++ ) {
-				const angs = EquiCoordToPolar( i, j );
-				const ray = PolarToUnitVector( angs[0], angs[1] );
-				const sxc = IntersectRayWithBoxes( ray );
-				const xy = SideXYToCubemap( sxc[0], sxc[1], sxc[2] );
-				
-				const sampleX = Math.floor( xy[0] * png.width );
-				const sampleY = Math.floor( xy[1] * png.height );
-	
+
+		for (let j = 0; j < H; j++) {
+			for (let i = 0; i < W; i++) {
+				const angs = EquiCoordToPolar(i, j);
+				const ray = PolarToUnitVector(angs[0], angs[1]);
+				const sxc = IntersectRayWithBoxes(ray);
+				const xy = SideXYToCubemap(sxc[0], sxc[1], sxc[2]);
+
+				const sampleX = Math.floor(xy[0] * png.width);
+				const sampleY = Math.floor(xy[1] * png.height);
+
 				const idx = (png.width * sampleY + sampleX) << 2;
 				const oidx = (W * j + i) * 3;
-	
+
 				outPNG.data[oidx] = png.data[idx];
 				outPNG.data[oidx + 1] = png.data[idx + 1];
 				outPNG.data[oidx + 2] = png.data[idx + 2];
 			}
 		}
-	
-		outPNG.pack().pipe( fs.createWriteStream( program.output ) );
-	} );
 
+		const outBuffer = PNG.sync.write(outPNG);
+		const blob = new Blob([outBuffer], { type: 'image/png' });
 
+		//const dataTransfer = new DataTransfer();
+		//dataTransfer.items.add(new File([blob], 'equi.png', { type: 'image/png' }));
+		// Transfer the image data to another element
+		//const targetElement = document.getElementById('target');
+		//targetElement.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dataTransfer }));
+		if (blob instanceof Blob) {
+			data = { files: [blob] };
+			var event = document.createEvent('MouseEvent');
+			event.dataTransfer = data;
+			onGalleryDrop(event);
+		}
+		else {
+			console.log("no blob from toBlob?!");
+		}
+	}
+
+	function handlePNGParsed(error, png) {
+		if (error) {
+			console.error('Failed to parse PNG:', error);
+			return;
+		}
+		doIt(png)
+	}
+
+	panorama_get_image_from_gallery()
+		.then((dataURL) => {
+
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
+
+			const img = new Image();
+			img.src = dataURL
+
+			img.addEventListener('load', () => {
+				const { width, height } = img;
+				canvas.width = width;
+				canvas.height = height;
+				ctx.drawImage(img, 0, 0);
+				const data = ctx.getImageData(0, 0, width, height);
+
+				const png = new PNG({
+					width: canvas.width,
+					height: canvas.height
+				});
+
+				// Copy the pixel data from the ImageData object to the PNG object
+				png.data.set(imageData.data);
+				doIt(png);
+			});
+		})
 }
-
+*/
 
 /* routine based on jerx/github, gpl3 */
 function convertto_cubemap() {
