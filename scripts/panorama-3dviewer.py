@@ -45,7 +45,7 @@ def dropHandleGallery(x):
         list = txt2img_gallery_component.value
         img = data_url_to_image(x)
         list.append(img)
-        return list
+        return gr.update(value=list)
 
 
 def after_component(component, **kwargs):

@@ -11,9 +11,66 @@
 <div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
 
 <script>
-  const startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : '../docs/assets/img/startimage.jpg'
+  let startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : '../docs/assets/img/startimage.jpg'
   const panoAdapter = window.frameElement.getAttribute("panoMode") === "cubemap" ? PhotoSphereViewer.CubemapAdapter : PhotoSphereViewer.EquirectangularAdapter
   let panoviewer
+
+  document.querySelector("body").style.margin = "0";
+
+  const panoViewerKeyboardActions = {
+    keyboardActions: {
+      ...PhotoSphereViewer.DEFAULTS.keyboardActions,
+      'h': (viewer) => {
+        if (viewer.panel.isVisible('help')) {
+          viewer.panel.hide();
+        } else {
+          viewer.panel.show({
+            id: 'help',
+            content: 'Help content',
+          });
+        }
+      },
+      'f': (viewer) => viewer.toggleFullscreen(),
+    }
+  }
+
+  const navBarCustomButtons = [
+    {
+      id: 'pano-previmage',
+      content: '<span>&#x27E8;</span>',
+      title: 'Previous image from gallery',
+      className: 'pano-nav-previmg',
+      onClick: (viewer) => {
+        // normalize path
+        startImage = startImage.replace(/\\/g, "/");
+        const srcArray = JSON.parse(frameElement.getAttribute("panoGalItems"))
+        if (srcArray.length === 1) { return }
+        const currentIndex = srcArray.indexOf(startImage)
+        var previousIndex = currentIndex - 1
+        if (previousIndex < 0) {
+          previousIndex = srcArray.length - 1
+        }
+        startImage = srcArray[previousIndex]
+        viewer.setPanorama(startImage, { caption: startImage.replace(/^.*[\\\/]/, '') })
+      },
+    },
+    {
+      id: 'pano-nextimage',
+      content: '<span>&#x27E9;</span>',
+      title: 'Next image from gallery',
+      className: 'pano-nav-nextimg',
+      onClick: (viewer) => {
+        const srcArray = JSON.parse(frameElement.getAttribute("panoGalItems"))
+        if (srcArray.length === 1) { return }
+        const currentIndex = srcArray.indexOf(startImage);
+        var nextIndex = (currentIndex + 1) % srcArray.length;
+        startImage = srcArray[nextIndex];
+        viewer.setPanorama(startImage, { caption: startImage.replace(/^.*[\\\/]/, '') })
+      },
+    },
+    'caption',
+    'fullscreen'
+  ]
 
   function PanOptionsFor(mode) {
     switch (mode) {
@@ -24,26 +81,39 @@
           panorama: {
             type: 'net',
             path: startImage
-          }
+          },
+          navbar: navBarCustomButtons,
+          caption: startImage.replace(/^.*[\\\/]/, ''),
+          keyboardActions: panoViewerKeyboardActions
         }
         break
       default:
         return {
           container: document.querySelector('#panoramaviewer'),
           panorama: startImage,
-          adapter: panoAdapter
+          adapter: panoAdapter,
+          navbar: navBarCustomButtons,
+          caption: startImage.replace(/^.*[\\\/]/, ''),
+          keyboardActions: panoViewerKeyboardActions
         }
     }
   }
   function createViewer(opts) {
     let panObj = opts ? opts : PanOptionsFor(window.frameElement.getAttribute("panoMode"))
     panoviewer = new PhotoSphereViewer.Viewer(panObj)
+    panoviewer.animate({
+      yaw: Math.PI * 2,
+      pitch: '360deg',
+      zoom: 20,
+      speed: '3rpm',
+    })
   }
+
   function destroyViewer() {
-      if (panoviewer) {
-        panoviewer.destroy()
-        panoviewer = null
-      }
+    if (panoviewer) {
+      panoviewer.destroy()
+      panoviewer = null
+    }
   }
   /* main */
   createViewer();
