@@ -176,7 +176,7 @@ function panorama_gototab(tabname = "Panorama Viewer", tabsId = "tabs") {
 
 async function panorama_get_image_from_gallery(warnOnNoSelect) {
 	const curGal = gradioApp().querySelector('#tabs button.selected').innerText // get_uiCurrentTab()
-
+	if ("Extras" === curGal) curGal = "extras"
 	const buttons = gradioApp().querySelectorAll("#" + curGal + '_gallery .grid-container button img:not([src*="grid-"][src$=".png"])') // skip grid-img
 	let button = gradioApp().querySelector("#" + curGal + "_gallery .grid-container button.selected img")
 
