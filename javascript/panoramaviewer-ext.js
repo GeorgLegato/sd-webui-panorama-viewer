@@ -49,10 +49,18 @@ function panorama_here(phtml, mode, buttonId) {
 
 			let galviewer = gradioApp().querySelector("#panogalviewer-iframe" + tabContext)
 			let galImage = gradioApp().querySelector(containerName + " div > img")
+			const galImagesAll = gradioApp().querySelectorAll(containerName + ' .grid-container button img:not([src*="grid-"][src$=".png"])')
+			const grids = gradioApp().querySelectorAll(containerName + ' .grid-container button img:is([src*="grid-"][src$=".png"])')
+			const numGrids = grids ? grids.length : 0
+
+			const galImagesAllsrc = []
+
+			for (var i = 0; i < galImagesAll.length; i++) {
+				let p = galImagesAll[i].getAttribute('src')
+				galImagesAllsrc.push(p);
+			}
 
 			if (galviewer) {
-				// not the tab... openpanorama.frame.contentWindow.postMessage({
-
 				galviewer.contentWindow.postMessage({
 					type: "panoramaviewer/destroy"
 				})
@@ -65,23 +73,30 @@ function panorama_here(phtml, mode, buttonId) {
 			/* close mimics to open a none-iframe */
 			if (!phtml) return
 
-			/* TODO, disabled; no suitable layout found to insert Panoviewet, yet. 
-			if (!galImage) {
-				// if no item currently selected, check if there is only one gallery-item, 
-				//so take this as it is a unique action
-				let galitems = gradioApp().querySelectorAll(containerName + " .gallery-item")
-				if (1 === galitems.length) {
-//					galitems[0].click().then( () => {
-//						gradioApp().querySelector(containerName + " ~ div #sendto_panogallery_button").click()
-//					})
-					galImage = galitems[0].querySelector("img")
-					
-				}
+			/* if nothing selecte, just display the 1st one, if any */
+			if (!galImage && galImagesAll.length > 0) {
+				galImagesAll[0].click()
+				setTimeout(() => {
+					panorama_here(phtml, mode, buttonId)()
+					return
+				}, 200);
+				return
 			}
-			*/
 
 			// select only single viewed gallery image, not the small icons in the overview
 			if (!galImage) return
+
+			function getIndex() {
+				const basename= galImage.src.match(/\/([^\/]+)$/)[1]
+				for (var i = 0; i < galImagesAll.length; i++) {
+					if (basename === galImagesAll[i].getAttribute('src').replace(/^.*[\\\/]/, '')) {
+						return i
+					}
+				}
+				return 0
+			}
+			
+			const galImageIndex = getIndex()
 
 			let parent = galImage.parentElement
 			//let parent = gradioApp().querySelector(containerName+" > div") // omg
@@ -90,8 +105,9 @@ function panorama_here(phtml, mode, buttonId) {
 			iframe.src = phtml
 			iframe.id = "panogalviewer-iframe" + tabContext
 			iframe.classList += "panogalviewer-iframe"
-			iframe.setAttribute("panoimage", galImage.src)
+			iframe.setAttribute("panoimage", galImagesAllsrc[galImageIndex])
 			iframe.setAttribute("panoMode", mode)
+			iframe.setAttribute("panoGalItems", JSON.stringify(galImagesAllsrc))
 			parent.appendChild(iframe)
 			galImageDisp = galImage.style.display
 			galImage.style.display = "none"
@@ -111,7 +127,7 @@ function panorama_send_video(dataURL, name = "Embed Resource") {
 			resourceName: name,
 		},
 	});
-	
+
 }
 
 function panorama_send_image(dataURL, name = "Embed Resource") {
@@ -155,43 +171,22 @@ function panorama_gototab(tabname = "Panorama Viewer", tabsId = "tabs") {
 }
 
 
-async function panorama_get_image_from_gallery() {
-	const curGal =  gradioApp().querySelector('#tabs button.selected').innerText // get_uiCurrentTab()
+async function panorama_get_image_from_gallery(warnOnNoSelect) {
+	const curGal = gradioApp().querySelector('#tabs button.selected').innerText // get_uiCurrentTab()
 
-	const buttons = gradioApp().querySelectorAll("#"+curGal+"_gallery .grid-container button")
-	const button = gradioApp().querySelector("#"+curGal+"_gallery .grid-container button.selected")
+	const buttons = gradioApp().querySelectorAll("#" + curGal + '_gallery .grid-container button img:not([src*="grid-"][src$=".png"])') // skip grid-img
+	let button = gradioApp().querySelector("#" + curGal + "_gallery .grid-container button.selected img")
 
-	/* pre Gradio 3.23 
-	var buttons = gradioApp().querySelectorAll(
-		'[style="display: block;"].tabitem div[id$=_gallery] .gallery-item'
-	);
-	var button = gradioApp().querySelector(
-		'[style="display: block;"].tabitem div[id$=_gallery] .gallery-item.\\!ring-2'
-	);
-	*/
-
+	if (!button && warnOnNoSelect && buttons.length > 1) {
+		alert("This action requires you have explicitely selected an image from the gallery")
+		return null
+	}
 	if (!button) button = buttons[0];
 
 	if (!button)
 		throw new Error("[panorama_viewer] No image available in the gallery");
 
-	/* only use file url, not data url 
-	
-	const canvas = document.createElement("canvas");
-		const image = document.createElement("img");
-		image.src = button.querySelector("img").src;
-	
-	
-		await image.decode();
-	
-		canvas.width = image.width;
-		canvas.height = image.height;
-	
-		canvas.getContext("2d").drawImage(image, 0, 0);
-	
-		return canvas.toDataURL();
-		*/
-	return button.querySelector("img").src
+	return button.src
 }
 
 function panorama_send_gallery(name = "Embed Resource") {
@@ -374,9 +369,9 @@ document.addEventListener("DOMContentLoaded", () => {
 /* routine based on jerx/github, gpl3 */
 function convertto_cubemap() {
 
-	panorama_get_image_from_gallery()
+	panorama_get_image_from_gallery(true)
 		.then((dataURL) => {
-
+			if (!dataURL) return
 			const canvas = document.createElement('canvas')
 			const ctx = canvas.getContext('2d')
 
@@ -446,7 +441,7 @@ function convertto_cubemap() {
 					const stack = error.stack;
 					const match = stack.match(/file=.*javascript\//)
 					if (match) {
-						const scriptPath = window.location.href+match;
+						const scriptPath = window.location.href + match;
 						const workerPath = new URL('e2c.js', scriptPath).href;
 						worker = new Worker(workerPath);
 					}

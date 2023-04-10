@@ -1,11 +1,17 @@
+body {
+    margin: 0 !important;
+}
+
 .panogalviewer-iframe body {
     overflow: hidden;
+    margin: 0 !important;
 }
 
 #panoviewer-iframe {
     width:100%;
     height:100vh;
     overflow: hidden;
+    margin: 0;
 }
 
 .panogalviewer-iframe {
@@ -13,4 +19,12 @@
     flex: auto;
     width:100%;
     height:100%;
+    margin: 0;
+    padding: 0;
+}
+
+#PanoramaViewer_ToolBox {
+    width: auto;
+    flex: 0 1 auto;
+
 }
