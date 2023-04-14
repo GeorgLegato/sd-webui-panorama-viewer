@@ -78,6 +78,9 @@ def after_component(component, **kwargs):
                         conv_cubemap_gallery_button = gr.Button ("\U0000271C", variant="tool", elem_id="convertto_cubemap_button"+suffix)  #✜
                         conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
 
+                        conv_equi_gallery_button = gr.Button ("\U0001F4AB", variant="tool", elem_id="convertto_equi_button"+suffix)  #💫
+                        conv_equi_gallery_button.click (None, [],None, _js="convertto_equi" )
+
                         close_panoviewer = gr.Button("\U0000274C", variant="tool") # ❌
                         close_panoviewer.click(None,[],None,_js="panorama_here(\"""\",\"\",\"""\")" )
 

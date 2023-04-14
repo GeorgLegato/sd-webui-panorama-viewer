@@ -14,9 +14,12 @@
   let startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : '../docs/assets/img/startimage.jpg'
   const panoAdapter = window.frameElement.getAttribute("panoMode") === "cubemap" ? PhotoSphereViewer.CubemapAdapter : PhotoSphereViewer.EquirectangularAdapter
   const srcArray = JSON.parse(window.frameElement.getAttribute("panoGalItems"))
-
   let panoviewer
-
+  
+  function getCurIndex(base=0) {
+    return srcArray.indexOf(startImage)+base
+  }
+  
   document.querySelector("body").style.margin = "0";
 
   const panoViewerKeyboardActions = {
@@ -46,14 +49,14 @@
         // normalize path
         startImage = startImage.replace(/\\/g, "/");
         if (srcArray.length === 1) { return }
-        const currentIndex = srcArray.indexOf(startImage)
+        const currentIndex = getCurIndex()
         var previousIndex = currentIndex - 1
         if (previousIndex < 0) {
           previousIndex = srcArray.length - 1
         }
         startImage = srcArray[previousIndex]
         viewer.setPanorama(startImage, {
-          caption: "(x/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, ''),
+          caption: "("+getCurIndex(1)+"/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, ''),
         })
       },
     },
@@ -64,10 +67,10 @@
       className: 'pano-nav-nextimg',
       onClick: (viewer) => {
         if (srcArray.length === 1) { return }
-        const currentIndex = srcArray.indexOf(startImage);
+        const currentIndex = getCurIndex();
         var nextIndex = (currentIndex + 1) % srcArray.length;
         startImage = srcArray[nextIndex];
-        viewer.setPanorama(startImage, { caption: "(x/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, '') })
+        viewer.setPanorama(startImage, { caption: "("+getCurIndex(1)+"/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, '') })
       },
     },
     'caption',
@@ -85,7 +88,7 @@
             path: startImage
           },
           navbar: navBarCustomButtons,
-          caption: "(x/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, ''),
+          caption: "("+ getCurIndex(1) + "/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, ''),
           keyboardActions: panoViewerKeyboardActions
         }
         break
@@ -95,7 +98,7 @@
           panorama: startImage,
           adapter: panoAdapter,
           navbar: navBarCustomButtons,
-          caption: "(x/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, ''),
+          caption: "("+getCurIndex(1)+"/" + srcArray.length + ") " + startImage.replace(/^.*[\\\/]/, ''),
           keyboardActions: panoViewerKeyboardActions
         }
     }
@@ -104,7 +107,7 @@
     let panObj = opts ? opts : PanOptionsFor(window.frameElement.getAttribute("panoMode"))
     panoviewer = new PhotoSphereViewer.Viewer(panObj)
     panoviewer.animate({
-      yaw: Math.PI,
+      yaw: Math.PI/2,
       pitch: '360deg',
       zoom: 20,
       speed: '2rpm',

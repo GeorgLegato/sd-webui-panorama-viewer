@@ -173,7 +173,7 @@ function panorama_gototab(tabname = "Panorama Viewer", tabsId = "tabs") {
 
 async function panorama_get_image_from_gallery(warnOnNoSelect) {
 	const curGal = gradioApp().querySelector('#tabs button.selected').innerText // get_uiCurrentTab()
-
+	if ("Extras" === curGal) curGal = "extras"
 	const buttons = gradioApp().querySelectorAll("#" + curGal + '_gallery .grid-container button img:not([src*="grid-"][src$=".png"])') // skip grid-img
 	let button = gradioApp().querySelector("#" + curGal + "_gallery .grid-container button.selected img")
 
@@ -366,6 +366,465 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+/* routine based on a c# snippet in stackoverflow */
+function convertto_equi() {
+
+	panorama_get_image_from_gallery()
+		.then((dataURL) => {
+
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
+
+			const img = new Image();
+			img.src = dataURL
+
+			img.addEventListener('load', () => {
+				const { width, height } = img;
+				canvas.width = width;
+				canvas.height = height;
+				ctx.drawImage(img, 0, 0);
+				const sourceTexture = ctx.getImageData(0, 0, width, height);
+
+				const outputWidth = sourceTexture.width
+				const outputHeight = sourceTexture.height / 1.5
+
+				let equiTexture = new ImageData(outputWidth, outputHeight);
+				let u, v; // Normalised texture coordinates, from 0 to 1, starting at lower left corner
+				let phi, theta; // Polar coordinates
+
+				const cubeFaceWidth = sourceTexture.width / 4; // 4 horizontal faces
+				const cubeFaceHeight = sourceTexture.height / 3; // 3 vertical faces
+
+
+				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
+
+				for (let j = equiTexture.height-1; j >= 0; j--) {
+					// Rows start from the bottom
+					v = 1 - (j / equiTexture.height);
+					theta = v * Math.PI;
+
+					for (let i = 0; i < equiTexture.width; i++) {
+
+						// Columns start from the left
+						u = (i / equiTexture.width);
+						phi = u * 2 * Math.PI;
+
+						let x, y, z; // Unit vector
+						x = Math.sin(phi) * Math.sin(theta) * -1;
+						y = Math.cos(theta);
+						z = Math.cos(phi) * Math.sin(theta) * -1;
+
+						let xa, ya, za;
+						let a;
+
+						a = Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
+
+						// Vector Parallel to the unit vector that lies on one of the cube faces
+						xa = x / a;
+						ya = y / a;
+						za = z / a;
+
+						let xPixel, yPixel;
+						let xOffset, yOffset;
+
+						if (xa == 1) {
+							// Right
+							xPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceWidth) - 0.5);
+							xOffset = 2 * cubeFaceWidth; // Offset
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight; // Offset
+						}
+						else if (xa == -1) {
+							// Left
+							xPixel = Math.round(((((za + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = 0;
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (ya == 1) {
+							// Up
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceHeight) - 0.5);
+							yOffset = 2 * cubeFaceHeight;
+						}
+						else if (ya == -1) {
+							// Down
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0, 5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = 0;
+						}
+						else if (za == 1) {
+							// Front
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((ya + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (za == -1) {
+							//Back
+							xPixel = ~~((((xa + 1) / 2) - 1) * cubeFaceWidth);
+							xOffset = 3 * cubeFaceWidth;
+							yPixel = ~~((((ya + 1) / 2)) * cubeFaceHeight);
+							yOffset = cubeFaceHeight;
+						}
+						else {
+							console.warn("Unknown face, something went wrong");
+							xPixel = 0;
+							yPixel = 0;
+							xOffset = 0;
+							yOffset = 0;
+						}
+
+						xPixel = Math.abs(xPixel);
+						yPixel = Math.abs(yPixel);
+
+						xPixel += xOffset;
+						yPixel += yOffset;
+
+						const index = 4 * (xPixel + yPixel * sourceTexture.width);
+						const tindex = 4 * (i + j * equiTexture.width);
+						equiTexture.data[tindex] = sourceTexture.data[index];  // red   color
+						equiTexture.data[tindex + 1] = sourceTexture.data[index + 1];  // green color
+						equiTexture.data[tindex + 2] = sourceTexture.data[index + 2];  // blue  color
+						equiTexture.data[tindex + 3] = sourceTexture.data[index + 3];
+					}
+
+				}
+
+				// create canvas and draw equirectangular pixels in it
+				const equiCanvas = document.createElement('canvas');
+				equiCanvas.width = outputWidth;
+				equiCanvas.height = outputHeight;
+				const equiCtx = equiCanvas.getContext('2d');
+
+				const equiImageData = equiCtx.createImageData(outputWidth, outputHeight);
+				equiImageData.data.set(equiTexture);
+				equiCtx.putImageData(equiTexture, 0, 0);
+
+				equiCanvas.toBlob(function (blob) {
+					if (blob instanceof Blob) {
+						data = { files: [blob] };
+
+						var event = document.createEvent('MouseEvent');
+						event.dataTransfer = data;
+						onGalleryDrop(event)
+					}
+					else {
+						console.log("no blob from toBlob?!")
+					}
+				}, 'image/png');
+			})
+		})
+}
+
+/* routine based on a c# snippet in stackoverflow */
+function convertto_equi() {
+
+	panorama_get_image_from_gallery()
+		.then((dataURL) => {
+
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
+
+			const img = new Image();
+			img.src = dataURL
+
+			img.addEventListener('load', () => {
+				const { width, height } = img;
+				canvas.width = width;
+				canvas.height = height;
+				ctx.drawImage(img, 0, 0);
+				const sourceTexture = ctx.getImageData(0, 0, width, height);
+
+				const outputWidth = sourceTexture.width
+				const outputHeight = sourceTexture.height / 1.5
+
+				let equiTexture = new ImageData(outputWidth, outputHeight);
+				let u, v; // Normalised texture coordinates, from 0 to 1, starting at lower left corner
+				let phi, theta; // Polar coordinates
+
+				const cubeFaceWidth = sourceTexture.width / 4; // 4 horizontal faces
+				const cubeFaceHeight = sourceTexture.height / 3; // 3 vertical faces
+
+
+				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
+
+				for (let j = equiTexture.height-1; j >= 0; j--) {
+					// Rows start from the bottom
+					v = 1 - (j / equiTexture.height);
+					theta = v * Math.PI;
+
+					for (let i = 0; i < equiTexture.width; i++) {
+
+						// Columns start from the left
+						u = (i / equiTexture.width);
+						phi = u * 2 * Math.PI;
+
+						let x, y, z; // Unit vector
+						x = Math.sin(phi) * Math.sin(theta) * -1;
+						y = Math.cos(theta);
+						z = Math.cos(phi) * Math.sin(theta) * -1;
+
+						let xa, ya, za;
+						let a;
+
+						a = Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
+
+						// Vector Parallel to the unit vector that lies on one of the cube faces
+						xa = x / a;
+						ya = y / a;
+						za = z / a;
+
+						let xPixel, yPixel;
+						let xOffset, yOffset;
+
+						if (xa == 1) {
+							// Right
+							xPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceWidth) - 0.5);
+							xOffset = 2 * cubeFaceWidth; // Offset
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight; // Offset
+						}
+						else if (xa == -1) {
+							// Left
+							xPixel = Math.round(((((za + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = 0;
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (ya == 1) {
+							// Up
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceHeight) - 0.5);
+							yOffset = 2 * cubeFaceHeight;
+						}
+						else if (ya == -1) {
+							// Down
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0, 5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = 0;
+						}
+						else if (za == 1) {
+							// Front
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((ya + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (za == -1) {
+							//Back
+							xPixel = ~~((((xa + 1) / 2) - 1) * cubeFaceWidth);
+							xOffset = 3 * cubeFaceWidth;
+							yPixel = ~~((((ya + 1) / 2)) * cubeFaceHeight);
+							yOffset = cubeFaceHeight;
+						}
+						else {
+							console.warn("Unknown face, something went wrong");
+							xPixel = 0;
+							yPixel = 0;
+							xOffset = 0;
+							yOffset = 0;
+						}
+
+						xPixel = Math.abs(xPixel);
+						yPixel = Math.abs(yPixel);
+
+						xPixel += xOffset;
+						yPixel += yOffset;
+
+						const index = 4 * (xPixel + yPixel * sourceTexture.width);
+						const tindex = 4 * (i + j * equiTexture.width);
+						equiTexture.data[tindex] = sourceTexture.data[index];  // red   color
+						equiTexture.data[tindex + 1] = sourceTexture.data[index + 1];  // green color
+						equiTexture.data[tindex + 2] = sourceTexture.data[index + 2];  // blue  color
+						equiTexture.data[tindex + 3] = sourceTexture.data[index + 3];
+					}
+
+				}
+
+				// create canvas and draw equirectangular pixels in it
+				const equiCanvas = document.createElement('canvas');
+				equiCanvas.width = outputWidth;
+				equiCanvas.height = outputHeight;
+				const equiCtx = equiCanvas.getContext('2d');
+
+				const equiImageData = equiCtx.createImageData(outputWidth, outputHeight);
+				equiImageData.data.set(equiTexture);
+				equiCtx.putImageData(equiTexture, 0, 0);
+
+				equiCanvas.toBlob(function (blob) {
+					if (blob instanceof Blob) {
+						data = { files: [blob] };
+
+						var event = document.createEvent('MouseEvent');
+						event.dataTransfer = data;
+						onGalleryDrop(event)
+					}
+					else {
+						console.log("no blob from toBlob?!")
+					}
+				}, 'image/png');
+			})
+		})
+}
+
+/* routine based on a c# snippet in stackoverflow */
+function convertto_equi() {
+
+	panorama_get_image_from_gallery()
+		.then((dataURL) => {
+
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
+
+			const img = new Image();
+			img.src = dataURL
+
+			img.addEventListener('load', () => {
+				const { width, height } = img;
+				canvas.width = width;
+				canvas.height = height;
+				ctx.drawImage(img, 0, 0);
+				const sourceTexture = ctx.getImageData(0, 0, width, height);
+
+				const outputWidth = sourceTexture.width
+				const outputHeight = sourceTexture.height / 1.5
+
+				let equiTexture = new ImageData(outputWidth, outputHeight);
+				let u, v; // Normalised texture coordinates, from 0 to 1, starting at lower left corner
+				let phi, theta; // Polar coordinates
+
+				const cubeFaceWidth = sourceTexture.width / 4; // 4 horizontal faces
+				const cubeFaceHeight = sourceTexture.height / 3; // 3 vertical faces
+
+
+				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
+
+				for (let j = equiTexture.height-1; j >= 0; j--) {
+					// Rows start from the bottom
+					v = 1 - (j / equiTexture.height);
+					theta = v * Math.PI;
+
+					for (let i = 0; i < equiTexture.width; i++) {
+
+						// Columns start from the left
+						u = (i / equiTexture.width);
+						phi = u * 2 * Math.PI;
+
+						let x, y, z; // Unit vector
+						x = Math.sin(phi) * Math.sin(theta) * -1;
+						y = Math.cos(theta);
+						z = Math.cos(phi) * Math.sin(theta) * -1;
+
+						let xa, ya, za;
+						let a;
+
+						a = Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
+
+						// Vector Parallel to the unit vector that lies on one of the cube faces
+						xa = x / a;
+						ya = y / a;
+						za = z / a;
+
+						let xPixel, yPixel;
+						let xOffset, yOffset;
+
+						if (xa == 1) {
+							// Right
+							xPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceWidth) - 0.5);
+							xOffset = 2 * cubeFaceWidth; // Offset
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight; // Offset
+						}
+						else if (xa == -1) {
+							// Left
+							xPixel = Math.round(((((za + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = 0;
+							yPixel = Math.round((((ya + 1) / 2) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (ya == 1) {
+							// Up
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2) - 1) * cubeFaceHeight) - 0.5);
+							yOffset = 2 * cubeFaceHeight;
+						}
+						else if (ya == -1) {
+							// Down
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0, 5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((za + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = 0;
+						}
+						else if (za == 1) {
+							// Front
+							xPixel = Math.round(((((xa + 1) / 2)) * cubeFaceWidth) - 0.5);
+							xOffset = cubeFaceWidth;
+							yPixel = Math.round(((((ya + 1) / 2)) * cubeFaceHeight) - 0.5);
+							yOffset = cubeFaceHeight;
+						}
+						else if (za == -1) {
+							//Back
+							xPixel = ~~((((xa + 1) / 2) - 1) * cubeFaceWidth);
+							xOffset = 3 * cubeFaceWidth;
+							yPixel = ~~((((ya + 1) / 2)) * cubeFaceHeight);
+							yOffset = cubeFaceHeight;
+						}
+						else {
+							console.warn("Unknown face, something went wrong");
+							xPixel = 0;
+							yPixel = 0;
+							xOffset = 0;
+							yOffset = 0;
+						}
+
+						xPixel = Math.abs(xPixel);
+						yPixel = Math.abs(yPixel);
+
+						xPixel += xOffset;
+						yPixel += yOffset;
+
+						const index = 4 * (xPixel + yPixel * sourceTexture.width);
+						const tindex = 4 * (i + j * equiTexture.width);
+						equiTexture.data[tindex] = sourceTexture.data[index];  // red   color
+						equiTexture.data[tindex + 1] = sourceTexture.data[index + 1];  // green color
+						equiTexture.data[tindex + 2] = sourceTexture.data[index + 2];  // blue  color
+						equiTexture.data[tindex + 3] = sourceTexture.data[index + 3];
+					}
+
+				}
+
+				// create canvas and draw equirectangular pixels in it
+				const equiCanvas = document.createElement('canvas');
+				equiCanvas.width = outputWidth;
+				equiCanvas.height = outputHeight;
+				const equiCtx = equiCanvas.getContext('2d');
+
+				const equiImageData = equiCtx.createImageData(outputWidth, outputHeight);
+				equiImageData.data.set(equiTexture);
+				equiCtx.putImageData(equiTexture, 0, 0);
+
+				equiCanvas.toBlob(function (blob) {
+					if (blob instanceof Blob) {
+						data = { files: [blob] };
+
+						var event = document.createEvent('MouseEvent');
+						event.dataTransfer = data;
+						onGalleryDrop(event)
+					}
+					else {
+						console.log("no blob from toBlob?!")
+					}
+				}, 'image/png');
+			})
+		})
+}
+
 /* routine based on jerx/github, gpl3 */
 function convertto_cubemap() {
 
@@ -408,7 +867,7 @@ function convertto_cubemap() {
 					const data = ctx.getImageData(0, 0, width, height);
 
 					outCanvas.width = width
-					outCanvas.height = (width / cubeOrgX) * cubeOrgY
+					outCanvas.height = height*1.5
 					processImage(data);
 				});
 			}
