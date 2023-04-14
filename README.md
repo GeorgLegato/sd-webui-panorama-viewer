@@ -4,7 +4,7 @@ Since version 0.3 the Tab is removed in favor of two simple button beloe of the 
 
 ## Example Result
 https://user-images.githubusercontent.com/7210708/224517208-f355a6da-c170-4656-927e-a051fc1d9f40.mp4
-
+### More on Dribles https://dribles.com/u/1031776
 ## Prompt: 
 ```"HDRI Panorama View of some nice room..." ```  
 
