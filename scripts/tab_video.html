@@ -1,12 +1,13 @@
 <head>
-  <!-- for optimal display on high DPI devices -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
+    <!-- for optimal display on high DPI devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
 </head>
 
 <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
-<<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/equirectangular-video-adapter@5/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/equirectangular-video-adapter@5/index.js">
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/settings-plugin@5/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/resolution-plugin@5/index.js"></script>
@@ -20,49 +21,62 @@
 
 <script>
 
-//const baseUrl = 'https://photo-sphere-viewer-data.netlify.app/assets/';
-const baseUrl = '../docs/assets/img/'
+    //const baseUrl = 'https://photo-sphere-viewer-data.netlify.app/assets/';
+    const baseUrl = '../docs/assets/img/'
 
-const panoviewer = new PhotoSphereViewer.Viewer({
-    container: 'panoramaviewer',
-    adapter: [PhotoSphereViewer.EquirectangularVideoAdapter, {
-        muted: true,
-    }],
-    caption: 'Demo sweeping insects',
-    //loadingImg: baseUrl + 'loader.gif',
-    touchmoveTwoFingers: true,
-    mousewheelCtrlKey: false,
-    navbar: 'video caption settings fullscreen',
-
-    plugins: [
-        PhotoSphereViewer.VideoPlugin,
-        PhotoSphereViewer.SettingsPlugin,
-        [PhotoSphereViewer.ResolutionPlugin, {
-            defaultResolution: 'HD',
-            resolutions: [
-                {
-                    id: 'UHD',
-                    label: 'Ultra high',
-                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_UHD.mp4' },
-                },
-                {
-                    id: 'FHD',
-                    label: 'High',
-                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_FHD.mp4' },
-                },
-                {
-                    id: 'HD',
-                    label: 'Standard',
-                    panorama: { source: baseUrl + 'depthmap-0002_swing.mp4'},
-/* panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_HD.mp4' }, */
-                },
-                {
-                    id: 'SD',
-                    label: 'Low',
-                    panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_SD.mp4' },
-                },
-            ],
+    const panoviewer = new PhotoSphereViewer.Viewer({
+        container: 'panoramaviewer',
+        adapter: [PhotoSphereViewer.EquirectangularVideoAdapter, {
+            muted: true,
         }],
-    ],
-});
+        caption: 'Demo sweeping insects',
+        //loadingImg: baseUrl + 'loader.gif',
+        touchmoveTwoFingers: true,
+        mousewheelCtrlKey: false,
+        navbar: 'video caption settings fullscreen',
+
+        plugins: [
+            PhotoSphereViewer.VideoPlugin,
+            PhotoSphereViewer.SettingsPlugin,
+            [PhotoSphereViewer.ResolutionPlugin, {
+                defaultResolution: 'HD',
+                resolutions: [
+                    {
+                        id: 'UHD',
+                        label: 'Ultra high',
+                        panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_UHD.mp4' },
+                    },
+                    {
+                        id: 'FHD',
+                        label: 'High',
+                        panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_FHD.mp4' },
+                    },
+                    {
+                        id: 'HD',
+                        label: 'Standard',
+                        panorama: { source: baseUrl + 'depthmap-0002_swing.mp4' },
+                        /* panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_HD.mp4' }, */
+                    },
+                    {
+                        id: 'SD',
+                        label: 'Low',
+                        panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_SD.mp4' },
+                    },
+                ],
+            }],
+        ],
+    });
+
+    window.addEventListener("message", ({ data, origin, source }) => {
+        console.log(data.type)
+        switch (data.type) {
+            case "panoramaviewer/set-video":
+                console.info(`[panorama viewer] Sending video '${data.image.dataURL}'`);
+                panoviewer.setPanorama({source: data.image.dataURL})
+                //.then(() => /* update complete */);
+                document.querySelector('#panoramaviewer').focus()
+                break
+        }
+    })
+
 </script>
