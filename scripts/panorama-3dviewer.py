@@ -55,13 +55,13 @@ def after_component(component, **kwargs):
     # Add our buttons after each "send to extras" button
     if kwargs.get("elem_id") == "extras_tab":
 
-#            with gr.Row(elem_id="pano_sendbox",variant="compact", css="justify-content: center; align-content: flex-end;"):
-
-            # DISABLED until we get some functionality here, two button for Equi and Cubemap is currently enough
-            #send2tab_button   = gr.Button ("Pano \U0001F440", elem_id=f"sendto_panorama_button")          # 👀
-            #send2tab_button.click(None, [], None, _js="() => panorama_send_gallery('WebUI Resource')")
-            #send2tab_button.__setattr__("class","gr-button")
             if (not component.parent.elem_id): return
+
+            if (component.parent.elem_id == "image_buttons_infinit-zoom"):
+                send2tab_panomov_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"sendto_panorama_button")          # 🎦
+                send2tab_panomov_button.click(None, [], None, _js="() => panorama_send_infinitezoom('WebUI Resource')")
+                send2tab_panomov_button.__setattr__("class","gr-button")
+
             if (component.parent.elem_id == "image_buttons_txt2img" or component.parent.elem_id == "image_buttons_img2img" or component.parent.elem_id == "image_buttons_extras"):                    
                 suffix = component.parent.elem_id
             else:
@@ -74,7 +74,6 @@ def after_component(component, **kwargs):
                         view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
                         view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
                         
-                        #╬═
                         conv_cubemap_gallery_button = gr.Button ("\U0000271C", variant="tool", elem_id="convertto_cubemap_button"+suffix)  #✜
                         conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
 

@@ -87,7 +87,7 @@ function panorama_here(phtml, mode, buttonId) {
 			if (!galImage) return
 
 			function getIndex() {
-				const basename= galImage.src.match(/\/([^\/]+)$/)[1]
+				const basename = galImage.src.match(/\/([^\/]+)$/)[1]
 				for (var i = 0; i < galImagesAll.length; i++) {
 					if (basename === galImagesAll[i].getAttribute('src').replace(/^.*[\\\/]/, '')) {
 						return i
@@ -95,7 +95,7 @@ function panorama_here(phtml, mode, buttonId) {
 				}
 				return 0
 			}
-			
+
 			const galImageIndex = getIndex()
 
 			let parent = galImage.parentElement
@@ -130,9 +130,9 @@ function panorama_send_video(dataURL, name = "Embed Resource") {
 
 }
 
-function panorama_send_image(dataURL, name = "Embed Resource") {
+function panorama_send_video(dataURL, name = "Embed Resource") {
 	openpanorama.frame.contentWindow.postMessage({
-		type: "panoramaviewer/set-panorama",
+		type: "panoramaviewer/set-video",
 		image: {
 			dataURL: dataURL,
 			resourceName: name,
@@ -189,19 +189,18 @@ async function panorama_get_image_from_gallery(warnOnNoSelect) {
 	return button.src
 }
 
-function panorama_send_gallery(name = "Embed Resource") {
-	panorama_get_image_from_gallery()
-		.then((dataURL) => {
-			// Send to panorama-viewer
-			console.info("[panorama viewer] Using URL: " + dataURL)
-			// Change Tab
-			panorama_gototab();
-			panorama_send_image(dataURL, name);
 
-		})
-		.catch((error) => {
-			console.warn("[panoramaviewer] No image selected to send to panorama viewer");
-		});
+function panorama_send_infinitezoom(name = "Embed Resource") {
+	const vid = gradioApp().querySelector("#tab_iz_interface video")
+	if (vid) {
+		const dataURL = vid.src
+		// Send to panorama-viewer
+		console.info("[panorama viewer] Using movie URL: " + dataURL)
+		// Change Tab
+		panorama_gototab();
+		panorama_send_video(dataURL, name);
+
+	}
 }
 
 function openpanoramajs() {
@@ -398,7 +397,7 @@ function convertto_equi() {
 
 				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
 
-				for (let j = equiTexture.height-1; j >= 0; j--) {
+				for (let j = equiTexture.height - 1; j >= 0; j--) {
 					// Rows start from the bottom
 					v = 1 - (j / equiTexture.height);
 					theta = v * Math.PI;
@@ -551,7 +550,7 @@ function convertto_equi() {
 
 				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
 
-				for (let j = equiTexture.height-1; j >= 0; j--) {
+				for (let j = equiTexture.height - 1; j >= 0; j--) {
 					// Rows start from the bottom
 					v = 1 - (j / equiTexture.height);
 					theta = v * Math.PI;
@@ -704,7 +703,7 @@ function convertto_equi() {
 
 				onePx = document.createElement("canvas").getContext("2d").createImageData(1, 1);
 
-				for (let j = equiTexture.height-1; j >= 0; j--) {
+				for (let j = equiTexture.height - 1; j >= 0; j--) {
 					// Rows start from the bottom
 					v = 1 - (j / equiTexture.height);
 					theta = v * Math.PI;
@@ -867,7 +866,7 @@ function convertto_cubemap() {
 					const data = ctx.getImageData(0, 0, width, height);
 
 					outCanvas.width = width
-					outCanvas.height = height*1.5
+					outCanvas.height = height * 1.5
 					processImage(data);
 				});
 			}
