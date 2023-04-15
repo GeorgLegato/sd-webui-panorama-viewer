@@ -58,9 +58,12 @@ def after_component(component, **kwargs):
             if (not component.parent.elem_id): return
 
             if (component.parent.elem_id == "image_buttons_infinit-zoom"):
-                send2tab_panomov_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"sendto_panorama_button")          # 🎦
-                send2tab_panomov_button.click(None, [], None, _js="() => panorama_send_infinitezoom('WebUI Resource')")
-                send2tab_panomov_button.__setattr__("class","gr-button")
+                #send2tab_panomov_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"sendto_panoramatab_button")          # 🎦
+                #send2tab_panomov_button.click(None, [], None, _js="() => panorama_send_infinitezoom('TAB')")
+                #send2tab_panomov_button.__setattr__("class","gr-button")
+
+                panomoviehere_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"panoramamovie_here_button")          # 🎦
+                panomoviehere_button.click(None, [], None, _js="() => panorama_send_infinitezoom('HERE',\""+iframesrc+"\")")
 
             if (component.parent.elem_id == "image_buttons_txt2img" or component.parent.elem_id == "image_buttons_img2img" or component.parent.elem_id == "image_buttons_extras"):                    
                 suffix = component.parent.elem_id

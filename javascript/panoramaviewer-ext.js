@@ -4,6 +4,8 @@ const openpanorama = {
 
 let galImageDisp
 
+
+
 function panorama_here(phtml, mode, buttonId) {
 	return async () => {
 		try {
@@ -130,15 +132,6 @@ function panorama_send_video(dataURL, name = "Embed Resource") {
 
 }
 
-function panorama_send_video(dataURL, name = "Embed Resource") {
-	openpanorama.frame.contentWindow.postMessage({
-		type: "panoramaviewer/set-video",
-		image: {
-			dataURL: dataURL,
-			resourceName: name,
-		},
-	});
-}
 
 function panorama_change_mode(mode) {
 	return () => {
@@ -190,15 +183,38 @@ async function panorama_get_image_from_gallery(warnOnNoSelect) {
 }
 
 
-function panorama_send_infinitezoom(name = "Embed Resource") {
+function panorama_send_infinitezoom(mode, phtml) {
 	const vid = gradioApp().querySelector("#tab_iz_interface video")
 	if (vid) {
 		const dataURL = vid.src
-		// Send to panorama-viewer
 		console.info("[panorama viewer] Using movie URL: " + dataURL)
-		// Change Tab
-		panorama_gototab();
-		panorama_send_video(dataURL, name);
+
+		if ('TAB' == mode) {
+			panorama_gototab();
+			panorama_send_video(dataURL, name);
+		}
+		else
+		if ('HERE' == mode) {
+
+			let iframe = gradioApp().getElementById("panoinfZviewer-iframe")
+
+			if (!iframe) {
+				iframe = document.createElement('iframe')
+				iframe.src = phtml
+				iframe.id = "panoinfZviewer-iframe"
+				iframe.classList += "panoinfZviewer-iframe"
+				const inshere = gradioApp().getElementById("infinit-zoom_results")
+				inshere.parentElement.insertBefore(iframe,inshere)
+				iframe.setAttribute("panoimage", dataURL)
+			}
+			else {
+				iframe.setAttribute("panoimage", dataURL)
+				iframe.contentWindow.location.reload(true);
+			}
+//			galImageDisp = galImage.style.display
+//			galImage.style.display = "none"
+
+		}
 
 	}
 }
