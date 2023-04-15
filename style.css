@@ -28,3 +28,33 @@ body {
     flex: 0 1 auto;
 
 }
+
+
+#panoinfZviewer-iframe {
+    height: 512px;
+    width: 512px;
+    padding: 0;
+    margin: 0;
+    flex: 1 0 50%;
+}
+
+#tab_iz_interface .gradio-video {
+    overflow: hidden !important;
+    flex: 1 0 50% !important;
+}
+
+#panoinfZviewer-iframe body {
+    padding:0;
+    margin: 0;
+}
+
+div:has(>video) {
+    width: 512px;
+    height: 512px;
+}
+
+#tab_iz_interface div:has(> .gradio-video),
+#tab_iz_interface div:has(> #panoinfZviewer-iframe) {
+    height:100% !important;
+    flex-direction: row;
+}

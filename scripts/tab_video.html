@@ -21,15 +21,15 @@
 
 <script>
 
-    //const baseUrl = 'https://photo-sphere-viewer-data.netlify.app/assets/';
     const baseUrl = '../docs/assets/img/'
+    let startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : (baseUrl + 'depthmap-0002_swing.mp4')
 
     const panoviewer = new PhotoSphereViewer.Viewer({
         container: 'panoramaviewer',
         adapter: [PhotoSphereViewer.EquirectangularVideoAdapter, {
             muted: true,
         }],
-        caption: 'Demo sweeping insects',
+        caption: '',
         //loadingImg: baseUrl + 'loader.gif',
         touchmoveTwoFingers: true,
         mousewheelCtrlKey: false,
@@ -42,26 +42,10 @@
                 defaultResolution: 'HD',
                 resolutions: [
                     {
-                        id: 'UHD',
-                        label: 'Ultra high',
-                        panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_UHD.mp4' },
-                    },
-                    {
-                        id: 'FHD',
-                        label: 'High',
-                        panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_FHD.mp4' },
-                    },
-                    {
                         id: 'HD',
                         label: 'Standard',
-                        panorama: { source: baseUrl + 'depthmap-0002_swing.mp4' },
-                        /* panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_HD.mp4' }, */
-                    },
-                    {
-                        id: 'SD',
-                        label: 'Low',
-                        panorama: { source: baseUrl + 'equirectangular-video/Ayutthaya_SD.mp4' },
-                    },
+                        panorama: { source: startImage },
+                    }
                 ],
             }],
         ],
