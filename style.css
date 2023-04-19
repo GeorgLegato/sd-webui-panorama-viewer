@@ -49,7 +49,7 @@ body {
 }
 
 div:has(>video) {
-    width: 512px;
+    /* width: 512px; */
     height: 512px;
 }
 
@@ -57,4 +57,8 @@ div:has(>video) {
 #tab_iz_interface div:has(> #panoinfZviewer-iframe) {
     height:100% !important;
     flex-direction: row;
+}
+
+#tab_iz_interface .controls {
+    width: 95%;
 }
