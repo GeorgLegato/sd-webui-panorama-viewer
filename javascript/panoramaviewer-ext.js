@@ -15,6 +15,7 @@ function panoGetCurrentTabId() {
 		case "Process Image": return "Extras"; break;
 		case "Image Browser": return "Extras"; break;
 	}
+	return tabid
 }
 
 function panorama_here(phtml, mode, buttonId) {
