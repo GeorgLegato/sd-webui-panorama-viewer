@@ -57,7 +57,7 @@ def after_component(component, **kwargs):
 
             if (not component.parent.elem_id): return
 
-            if (component.parent.elem_id == "image_buttons_infinit-zoom"):
+            if (component.parent.elem_id == "image_buttons_infinite-zoom"):
                 #send2tab_panomov_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"sendto_panoramatab_button")          # 🎦
                 #send2tab_panomov_button.click(None, [], None, _js="() => panorama_send_infinitezoom('TAB')")
                 #send2tab_panomov_button.__setattr__("class","gr-button")
