@@ -215,7 +215,7 @@ function panorama_send_infinitezoom(mode, phtml) {
 				iframe.src = phtml
 				iframe.id = "panoinfZviewer-iframe"
 				iframe.classList += "panoinfZviewer-iframe"
-				const inshere = gradioApp().getElementById("infinit-zoom_results")
+				const inshere = gradioApp().getElementById("infinite-zoom_results")
 				inshere.parentElement.insertBefore(iframe,inshere)
 				iframe.setAttribute("panoimage", dataURL)
 			}
