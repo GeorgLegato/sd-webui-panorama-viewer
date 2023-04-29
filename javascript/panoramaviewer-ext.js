@@ -4,12 +4,24 @@ const openpanorama = {
 
 let galImageDisp
 
-
+function panoGetCurrentTabId() {
+	let tabid = gradioApp().querySelector('#tabs button.selected').innerText
+	
+	//support for Vladimic1111 fork
+	switch (tabid)
+	{
+		case "From Text": return "txt2img"; break;
+		case "From Image": return "img2img"; break;
+		case "Process Image": return "Extras"; break;
+		case "Image Browser": return "Extras"; break;
+	}
+	return tabid
+}
 
 function panorama_here(phtml, mode, buttonId) {
 	return async () => {
 		try {
-			let tabContext = get_uiCurrentTab().innerText
+			let tabContext = panoGetCurrentTabId() 
 			let containerName
 			switch (tabContext) {
 				case "txt2img":
@@ -42,7 +54,7 @@ function panorama_here(phtml, mode, buttonId) {
 						}
 					}
 				}
-					break;
+				break;
 				default: {
 					console.warn("PanoramaViewer: Unsupported gallery: " + tabContext)
 					return
@@ -165,7 +177,7 @@ function panorama_gototab(tabname = "Panorama Viewer", tabsId = "tabs") {
 
 
 async function panorama_get_image_from_gallery(warnOnNoSelect) {
-	const curGal = gradioApp().querySelector('#tabs button.selected').innerText // get_uiCurrentTab()
+	const curGal = panoGetCurrentTabId() // get_uiCurrentTab()
 	if ("Extras" === curGal) curGal = "extras"
 	const buttons = gradioApp().querySelectorAll("#" + curGal + '_gallery .grid-container button img:not([src*="grid-"][src$=".png"])') // skip grid-img
 	let button = gradioApp().querySelector("#" + curGal + "_gallery .grid-container button.selected img")
@@ -203,7 +215,7 @@ function panorama_send_infinitezoom(mode, phtml) {
 				iframe.src = phtml
 				iframe.id = "panoinfZviewer-iframe"
 				iframe.classList += "panoinfZviewer-iframe"
-				const inshere = gradioApp().getElementById("infinit-zoom_results")
+				const inshere = gradioApp().getElementById("infinite-zoom_results")
 				inshere.parentElement.insertBefore(iframe,inshere)
 				iframe.setAttribute("panoimage", dataURL)
 			}
@@ -292,8 +304,13 @@ function onGalleryDrop(ev) {
 		}
 
 		reader.onload = function (event) {
-			g.value = event.target.result
-			g.dispatchEvent(new Event('input'));
+			if (g) {
+				g.value = event.target.result
+				g.dispatchEvent(new Event('input'));
+			}
+			else {
+				throw "PanoramaViewer: gradio textarea not found for dragdrop handling"
+			}
 		}
 
 
@@ -915,7 +932,7 @@ function convertto_cubemap() {
 					const stack = error.stack;
 					const match = stack.match(/file=.*javascript\//)
 					if (match) {
-						const scriptPath = window.location.href + match;
+						const scriptPath = window.location.origin +"/"+ match;  // Vladim111 has noise in href.
 						const workerPath = new URL('e2c.js', scriptPath).href;
 						worker = new Worker(workerPath);
 					}
