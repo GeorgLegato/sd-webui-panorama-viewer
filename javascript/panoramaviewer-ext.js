@@ -304,8 +304,13 @@ function onGalleryDrop(ev) {
 		}
 
 		reader.onload = function (event) {
-			g.value = event.target.result
-			g.dispatchEvent(new Event('input'));
+			if (g) {
+				g.value = event.target.result
+				g.dispatchEvent(new Event('input'));
+			}
+			else {
+				throw "PanoramaViewer: gradio textarea not found for dragdrop handling"
+			}
 		}
 
 

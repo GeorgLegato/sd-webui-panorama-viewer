@@ -40,12 +40,14 @@ def add_tab():
     return [(ui, "Panorama Viewer", "panorama-3dviewer")]
 
 
-def dropHandleGallery(x):
-    if (None != txt2img_gallery_component):
-        list = txt2img_gallery_component.value
+def dropHandleGallery(x,g):
         img = data_url_to_image(x)
-        list.append(img)
-        return gr.update(value=list)
+        if (g is None):
+            g = txt2img_gallery_component.value
+            
+        g.append({'name':"droppedfile", 'data':img, 'is_file':False})
+        return txt2img_gallery_component.update(value=[img])
+        
 
 
 def after_component(component, **kwargs):
@@ -96,7 +98,7 @@ def after_component(component, **kwargs):
     if kwargs.get("elem_id") == "txt2img_gallery":
         txt2img_gallery_component = component
         if (gallery_input_ondrop and txt2img_gallery_component):
-            gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop], outputs=[txt2img_gallery_component]) 
+            gallery_input_ondrop.change(fn=dropHandleGallery, inputs=[gallery_input_ondrop,txt2img_gallery_component], outputs=[txt2img_gallery_component]) 
     
 
 script_callbacks.on_ui_tabs(add_tab)
