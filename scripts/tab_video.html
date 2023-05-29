@@ -20,9 +20,11 @@
 <div id="panoramaviewer" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"></div>
 
 <script>
-
+    
     const baseUrl = '../docs/assets/img/'
     let startImage = window.frameElement.getAttribute("panoimage") ? window.frameElement.getAttribute("panoimage") : (baseUrl + 'depthmap-0002_swing.mp4')
+    
+    THREE.ColorManagement.enabled = true;
 
     const panoviewer = new PhotoSphereViewer.Viewer({
         container: 'panoramaviewer',
@@ -50,6 +52,11 @@
             }],
         ],
     });
+
+    panoviewer.renderer.renderer.outputColorSpace='srgb-linear'
+    panoviewer.renderer.physicallyCorrectLights = true
+    panoviewer.renderer.toneMapping = 5 // THREE.ACESFilmicToneMapping, i need custom
+    panoviewer.renderer.toneMappingExposure = 1
 
     window.addEventListener("message", ({ data, origin, source }) => {
         console.log(data.type)

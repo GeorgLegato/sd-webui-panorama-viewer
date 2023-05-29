@@ -104,6 +104,7 @@
     }
   }
   function createViewer(opts) {
+    THREE.ColorManagement.enabled = true;
     let panObj = opts ? opts : PanOptionsFor(window.frameElement.getAttribute("panoMode"))
     panoviewer = new PhotoSphereViewer.Viewer(panObj)
     panoviewer.animate({
@@ -112,6 +113,12 @@
       zoom: 20,
       speed: '2rpm',
     })
+
+    panoviewer.renderer.renderer.outputColorSpace='srgb-linear'
+    panoviewer.renderer.physicallyCorrectLights = true
+    panoviewer.renderer.toneMapping = 5 // THREE.ACESFilmicToneMapping, i need custom
+    panoviewer.renderer.toneMappingExposure = 1
+
   }
 
   function destroyViewer() {
