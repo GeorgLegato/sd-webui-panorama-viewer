@@ -5,6 +5,8 @@ import gradio as gr
 import base64
 import io
 from PIL import Image
+from modules import scripts
+from modules.ui_components import ToolButton
 
 usefulDirs = scripts.basedir().split(os.sep)[-2:]
 iframesrc = "file="+usefulDirs[0]+"/"+usefulDirs[1]+"/scripts/tab_video.html"
@@ -55,7 +57,8 @@ def after_component(component, **kwargs):
     global txt2img_gallery_component
     
     # Add our buttons after each "send to extras" button
-    if kwargs.get("elem_id") == "extras_tab":
+    #if kwargs.get("elem_id") == "extras_tab":
+    if kwargs.get("elem_id") == "txt2img_send_to_extras" or kwargs.get("elem_id") == "img2img_send_to_extras":
 
             if (not component.parent.elem_id): return
 
@@ -64,7 +67,10 @@ def after_component(component, **kwargs):
                 #send2tab_panomov_button.click(None, [], None, _js="() => panorama_send_infinitezoom('TAB')")
                 #send2tab_panomov_button.__setattr__("class","gr-button")
 
-                panomoviehere_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"panoramamovie_here_button")          # 🎦
+                tabname = kwargs.get("elem_id").replace("_send_to_extras", "")
+                #panomoviehere_button   = gr.Button ("Pano \U0001F3A6", elem_id=f"panoramamovie_here_button")          # 🎦
+                panomoviehere_button   = ToolButton('🎦', elem_id=f'{tabname}_panoramamovie_here_button', tooltip="Panorama description here.")
+                #panomoviehere_button.click(None, [], None, _js="() => panorama_send_infinitezoom('HERE',\""+iframesrc+"\")")
                 panomoviehere_button.click(None, [], None, _js="() => panorama_send_infinitezoom('HERE',\""+iframesrc+"\")")
 
             if (component.parent.elem_id == "image_buttons_txt2img" or component.parent.elem_id == "image_buttons_img2img" or component.parent.elem_id == "image_buttons_extras"):                    
@@ -74,18 +80,28 @@ def after_component(component, **kwargs):
 
             with gr.Accordion("Panorama", open=False, elem_id="PanoramaViewer_ToolBox", visible=True):
                     with gr.Row():
-                        view_gallery_button = gr.Button ("\U0001F310", variant="tool", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
-                        view_cube_button    = gr.Button ("\U0001F9CA", variant="tool",elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
-                        view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
-                        view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
+                        #view_gallery_button = gr.Button ("\U0001F310", variant="tool", elem_id="sendto_panogallery_button_"+suffix)        # 🌐
+                        view_gallery_button   = ToolButton('🌐', elem_id=f'sendto_panogallery_button_'+suffix, tooltip="Panorama Gallery.")
+                        #view_cube_button    = gr.Button ("\U0001F9CA", variant="tool",elem_id="sendto_panogallery_cube_button_"+ suffix)   # 🧊
+                        view_cube_button   = ToolButton('🧊', elem_id=f'sendto_panogallery_cube_button_'+suffix, tooltip="Panorama Cube.")
+                        #view_gallery_button.click (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
+                        view_gallery_button.click(None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"\",\""+view_gallery_button.elem_id+"\")" )
+                        #view_cube_button.click    (None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
+                        view_cube_button.click(None, [],None, _js="panorama_here(\""+iframesrc_gal+"\",\"cubemap\",\""+view_cube_button.elem_id+"\")" )
                         
-                        conv_cubemap_gallery_button = gr.Button ("\U0000271C", variant="tool", elem_id="convertto_cubemap_button"+suffix)  #✜
-                        conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
+                        #conv_cubemap_gallery_button = gr.Button ("\U0000271C", variant="tool", elem_id="convertto_cubemap_button"+suffix)  #✜
+                        conv_cubemap_gallery_button   = ToolButton('✜', elem_id=f'convertto_cubemap_button'+suffix, tooltip="Convert to Cubemap.")
+                        #conv_cubemap_gallery_button.click (None, [],None, _js="convertto_cubemap" )
+                        conv_cubemap_gallery_button.click(None, [],None, _js="convertto_cubemap" )
 
-                        conv_equi_gallery_button = gr.Button ("\U0001F4AB", variant="tool", elem_id="convertto_equi_button"+suffix)  #💫
-                        conv_equi_gallery_button.click (None, [],None, _js="convertto_equi" )
+                        #conv_equi_gallery_button = gr.Button ("\U0001F4AB", variant="tool", elem_id="convertto_equi_button"+suffix)  #💫
+                        conv_equi_gallery_button   = ToolButton('💫', elem_id=f'convertto_equi_button'+suffix, tooltip="Convert to Equirectangular.")
+                        #conv_equi_gallery_button.click (None, [],None, _js="convertto_equi" )
+                        conv_equi_gallery_button.click(None, [],None, _js="convertto_equi" )
 
-                        close_panoviewer = gr.Button("\U0000274C", variant="tool") # ❌
+                        #close_panoviewer = gr.Button("\U0000274C", variant="tool") # ❌
+                        close_panoviewer   = ToolButton('❌')
+                        #close_panoviewer.click(None,[],None,_js="panorama_here(\"""\",\"\",\"""\")" )
                         close_panoviewer.click(None,[],None,_js="panorama_here(\"""\",\"\",\"""\")" )
 
                         gallery_input_ondrop = gr.Textbox(visible=False, elem_id="gallery_input_ondrop_"+ suffix)

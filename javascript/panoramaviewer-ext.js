@@ -362,7 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			// completely hide the transfer textbox and its container
 			let alldrops = gradioApp().querySelectorAll("div[id^='gallery_input_ondrop']")
 			alldrops.forEach((e) => {
-				e.parentElement.style.display = "none"
+				//e.parentElement.style.display = "none"
+				e.style.display = "none"
 			})
 
 			if (gradioApp().getElementById("panoviewer-iframe")) {
